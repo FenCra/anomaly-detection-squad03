@@ -8,13 +8,20 @@ class TransactionBase(BaseModel):
     valor: float = Field(..., gt=0, description="Valor da transação em reais")
     data: date = Field(..., description="Data da transação")
     hora: time = Field(..., description="Hora da transação")
+    dia_semana: str = Field(..., description="Dia da semana (segunda, terça, ...)")
     categoria: str = Field(..., description="Categoria da transação")
-    id_conta: str = Field(..., description="ID da conta/usuário")
+    conta: str = Field(..., description="ID da conta/usuário")
     cidade: str = Field(..., description="Cidade da transação")
-    tipo_transacao: str = Field(..., description="Tipo: débito, crédito, transferência")
-    dispositivo: str = Field(..., description="Dispositivo: celular, web, caixa")
+    estado: str = Field(..., description="Estado da transação")
+    pais: str = Field(..., description="País da transação")
     latitude: Optional[float] = Field(None, description="Latitude (opcional)")
     longitude: Optional[float] = Field(None, description="Longitude (opcional)")
+    tipo_transacao: str = Field(..., description="Tipo: débito, crédito, transferência")
+    dispositivo: str = Field(..., description="Dispositivo: celular, web, caixa")
+    estabelecimento: Optional[str] = Field(None, description="Estabelecimento (opcional)")
+    tentativas: int = Field(1, description="Número de tentativas")
+    ip_origem: Optional[str] = Field(None, description="IP de origem (opcional)")
+    is_fraude: bool = Field(False, description="Se é fraude ou não")
 
 
 class TransactionCreate(TransactionBase):
@@ -27,12 +34,19 @@ class TransactionUpdate(BaseModel):
     valor: Optional[float] = None
     data: Optional[date] = None
     hora: Optional[time] = None
+    dia_semana: Optional[str] = None
     categoria: Optional[str] = None
     cidade: Optional[str] = None
+    estado: Optional[str] = None
+    pais: Optional[str] = None
     tipo_transacao: Optional[str] = None
     dispositivo: Optional[str] = None
+    estabelecimento: Optional[str] = None
+    tentativas: Optional[int] = None
+    ip_origem: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    is_fraude: Optional[bool] = None
 
 
 class TransactionResponse(TransactionBase):
@@ -58,7 +72,7 @@ class TransactionListResponse(BaseModel):
 class AnomalyResponse(BaseModel):
     """Schema para retornar uma anomalia detectada."""
     id: int = Field(..., description="ID da transação")
-    id_conta: str = Field(..., description="ID da conta")
+    conta: str = Field(..., description="ID da conta")
     valor: float = Field(..., description="Valor da transação")
     data: str = Field(..., description="Data da transação")
     hora: str = Field(..., description="Hora da transação")

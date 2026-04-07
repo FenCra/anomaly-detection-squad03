@@ -23,9 +23,9 @@ class AnomalyDetector:
     def regra_valor_anomalo(self):
         """Valor acima da média + 2x desvio padrão."""
         anomalias = []
-        contas = self.db.query(Transaction.id_conta).distinct().all()
+        contas = self.db.query(Transaction.conta).distinct().all()
         for (conta,) in contas:
-            trans = self.db.query(Transaction).filter(Transaction.id_conta == conta).all()
+            trans = self.db.query(Transaction).filter(Transaction.conta == conta).all()
             if len(trans) < 2:
                 continue
             valores = [t.valor for t in trans]
@@ -35,7 +35,7 @@ class AnomalyDetector:
             for t in trans:
                 if t.valor > limite:
                     anomalias.append({
-                        "id": t.id, "id_conta": t.id_conta, "valor": t.valor,
+                        "id": t.id, "conta": t.conta, "valor": t.valor,
                         "data": str(t.data), "hora": str(t.hora), "categoria": t.categoria,
                         "cidade": t.cidade, "dispositivo": t.dispositivo,
                         "motivo": f"Valor {t.valor:.2f} acima do limite esperado ({limite:.2f})",
@@ -46,15 +46,15 @@ class AnomalyDetector:
     def regra_cidade_incomum(self):
         """Transação em cidade não visto antes."""
         anomalias = []
-        contas = self.db.query(Transaction.id_conta).distinct().all()
+        contas = self.db.query(Transaction.conta).distinct().all()
         for (conta,) in contas:
-            trans = self.db.query(Transaction).filter(Transaction.id_conta == conta).order_by(Transaction.data, Transaction.hora).all()
+            trans = self.db.query(Transaction).filter(Transaction.conta == conta).order_by(Transaction.data, Transaction.hora).all()
             cidades = set()
             for t in trans:
                 if t.cidade not in cidades:
                     if len(cidades) > 0:
                         anomalias.append({
-                            "id": t.id, "id_conta": t.id_conta, "valor": t.valor,
+                            "id": t.id, "conta": t.conta, "valor": t.valor,
                             "data": str(t.data), "hora": str(t.hora), "categoria": t.categoria,
                             "cidade": t.cidade, "dispositivo": t.dispositivo,
                             "motivo": f"Transação em cidade incomum: {t.cidade}",
@@ -66,9 +66,9 @@ class AnomalyDetector:
     def regra_burst_transacoes(self):
         """5+ transações no mesmo dia."""
         anomalias = []
-        contas = self.db.query(Transaction.id_conta).distinct().all()
+        contas = self.db.query(Transaction.conta).distinct().all()
         for (conta,) in contas:
-            trans = self.db.query(Transaction).filter(Transaction.id_conta == conta).order_by(Transaction.data).all()
+            trans = self.db.query(Transaction).filter(Transaction.conta == conta).order_by(Transaction.data).all()
             if len(trans) < 5:
                 continue
             for i in range(len(trans) - 4):
@@ -76,7 +76,7 @@ class AnomalyDetector:
                 proximas = trans[i+1:i+5]
                 if all(p.data == t.data for p in proximas):
                     anomalias.append({
-                        "id": t.id, "id_conta": t.id_conta, "valor": t.valor,
+                        "id": t.id, "conta": t.conta, "valor": t.valor,
                         "data": str(t.data), "hora": str(t.hora), "categoria": t.categoria,
                         "cidade": t.cidade, "dispositivo": t.dispositivo,
                         "motivo": "Burst de transações: 5+ transações no mesmo dia",

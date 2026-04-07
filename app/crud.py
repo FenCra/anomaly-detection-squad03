@@ -21,13 +21,13 @@ def get_transactions(
     dispositivo: str = None,
     data_inicio: date = None,
     data_fim: date = None,
-    id_conta: str = None,
+    conta: str = None,
     skip: int = 0,
     limit: int = 100
 ):
     """Lista transações com filtros opcionais."""
     query = db.query(Transaction)
-    
+
     # Aplicar filtros
     if categoria:
         query = query.filter(Transaction.categoria.ilike(f"%{categoria}%"))
@@ -45,13 +45,13 @@ def get_transactions(
         query = query.filter(Transaction.data >= data_inicio)
     if data_fim:
         query = query.filter(Transaction.data <= data_fim)
-    if id_conta:
-        query = query.filter(Transaction.id_conta == id_conta)
-    
+    if conta:
+        query = query.filter(Transaction.conta == conta)
+
     # Paginação
     total = query.count()
     transactions = query.offset(skip).limit(limit).all()
-    
+
     return transactions, total
 
 

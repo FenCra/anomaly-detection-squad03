@@ -45,7 +45,7 @@ async def list_transactions(
     dispositivo: str = Query(None, description="Dispositivo utilizado"),
     data_inicio: date = Query(None, description="Data início"),
     data_fim: date = Query(None, description="Data fim"),
-    id_conta: str = Query(None, description="ID da conta"),
+    conta: str = Query(None, description="ID da conta"),
     skip: int = Query(0, description="Pular N registros"),
     limit: int = Query(100, description="Limitar a N registros"),
     db: Session = Depends(get_db)
@@ -61,11 +61,11 @@ async def list_transactions(
         dispositivo=dispositivo,
         data_inicio=data_inicio,
         data_fim=data_fim,
-        id_conta=id_conta,
+        conta=conta,
         skip=skip,
         limit=limit
     )
-    
+
     filtros_aplicados = {
         "categoria": categoria,
         "cidade": cidade,
@@ -75,11 +75,11 @@ async def list_transactions(
         "dispositivo": dispositivo,
         "data_inicio": str(data_inicio) if data_inicio else None,
         "data_fim": str(data_fim) if data_fim else None,
-        "id_conta": id_conta,
+        "conta": conta,
         "skip": skip,
         "limit": limit
     }
-    
+
     return {
         "total": total,
         "items": transactions,

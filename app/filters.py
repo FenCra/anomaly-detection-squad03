@@ -73,11 +73,11 @@ class TransactionFilters:
             self.filtros_aplicados["data_fim"] = str(data_fim)
         return self
 
-    def id_conta(self, id_conta: Optional[str]) -> "TransactionFilters":
+    def conta(self, conta: Optional[str]) -> "TransactionFilters":
         """Filtrar por ID da conta."""
-        if id_conta:
-            self.query = self.query.filter(Transaction.id_conta == id_conta)
-            self.filtros_aplicados["id_conta"] = id_conta
+        if conta:
+            self.query = self.query.filter(Transaction.conta == conta)
+            self.filtros_aplicados["conta"] = conta
         return self
 
     def get_total(self) -> int:
@@ -103,7 +103,7 @@ def aplicar_filtros(
     dispositivo: Optional[str] = None,
     data_inicio: Optional[date] = None,
     data_fim: Optional[date] = None,
-    id_conta: Optional[str] = None,
+    conta: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
 ) -> dict:
@@ -125,7 +125,7 @@ def aplicar_filtros(
     filtro.dispositivo(dispositivo)
     filtro.data_inicio(data_inicio)
     filtro.data_fim(data_fim)
-    filtro.id_conta(id_conta)
+    filtro.conta(conta)
 
     total = filtro.get_total()
     items = filtro.get_results(skip, limit)
