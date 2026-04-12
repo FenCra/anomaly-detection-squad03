@@ -28,5 +28,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# PASTA API
+# Agents
 /.agents
+
+# Documentos não importantes
+DASHBOARD_BRIEFING.md
+ENTREGA_PARCIAL_RII_GROWUP_26.1.md
+software - Ana Carla (Atual).docx.md

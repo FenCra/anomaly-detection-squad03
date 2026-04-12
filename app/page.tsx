@@ -22,7 +22,6 @@ interface DashboardData {
   distribuicao_valores: Array<{ name: string; value: number }>
   resultado_anomalias: Array<{ name: string; value: number }>
   transacoes_hora: Array<{ name: string; value: number }>
-  distribuicao_score: Array<{ name: string; value: number }>
   top_usuarios: Array<{ name: string; value: number }>
 }
 
@@ -89,7 +88,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <KPICard
           title="Transações Deste Mês"
           value={data.total_transactions}
@@ -106,14 +105,7 @@ export default function Dashboard() {
           comparisonText={varAnomalias.text}
           comparisonColorClass={varAnomalias.color}
         />
-        <KPICard
-          title="Anomalias Aprovadas"
-          value="0" 
-          icon={<TrendingUpIcon />}
-          iconColorClass="text-yellow-600"
-          comparisonText={varAprovadas.text}
-          comparisonColorClass="text-yellow-600" // Cor explícita como requisitado nas specs
-        />
+
         <KPICard
           title="Valor Movimentado"
           value={`R$ ${(data.total_movimentado > 1000 ? (data.total_movimentado / 1000).toFixed(1) + 'K' : data.total_movimentado.toFixed(2)).replace('.', ',')}`} 
@@ -157,19 +149,13 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Gráficos Solicitados - Linha 3 (Grid de 3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Gráficos Solicitados - Linha 3 (Grid de 2 agora que o Score de Risco foi omitido) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ChartCard 
           title="Transações por Hora" 
           data={data.transacoes_hora} 
           type="line" 
           colors={['#10b981']} // Linha Verde
-        />
-        <ChartCard 
-          title="Score de Risco" 
-          data={data.distribuicao_score} 
-          type="bar" 
-          colors={['#ef4444']} // Colunas Vermelhas
         />
         <ChartCard 
           title="Top Usuários com Anomalias" 

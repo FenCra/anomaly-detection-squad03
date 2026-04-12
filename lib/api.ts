@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// Use o proxy do Next.js em vez de chamar a API diretamente (evita CORS)
 const API_URL = '/api'
 
 const api = axios.create({
@@ -40,17 +39,15 @@ export async function fetchTransactions(params: Record<string, any> = {}) {
   let isServerPaginated = false
   let serverSideTotal = 0
 
-  const requestAnomalies = params.is_fraude === true || params.status === 'anomalia' || params.status === 'bloqueada'
+  const requestAnomalies = params.is_fraude === true || params.status === 'anomalia'
 
-  // Se o filtro pede APENAS FRAUDES/ANOMALIAS (Sistema Dinâmico), puxamos direto da rota de inteligência!
+  // Se o filtro pede APENAS FRAUDES/ANOMALIAS, buscar da rota da inteligência
   if (requestAnomalies) {
     try {
       const anomaliesRes = await api.get('/anomalies', { params })
-      // Mapeamos os schemas de AnomalyResponse para a tabela do UI
       filteredData = (anomaliesRes.data.items || []).map((a: any) => ({
         ...a,
         is_fraude: true,
-        status_simulado: a.severidade === 'alta' ? 'Bloqueada' : 'Anomalia',
         latitude: 0,
         longitude: 0,
         tipo_transacao: 'N/A',
@@ -59,7 +56,7 @@ export async function fetchTransactions(params: Record<string, any> = {}) {
         ip_origem: 'N/A'
       }))
 
-      // Aplica Filtros Client-Side porque a rota em Python /anomalies não intercepta query params comuns (como cidade, categoria, etc)
+      // Aplica Filtros Client-Side porque a rota em Python /anomalies não intercepta query params comuns
       if (params.search) {
         const q = params.search.toLowerCase()
         filteredData = filteredData.filter(t => 
@@ -77,9 +74,6 @@ export async function fetchTransactions(params: Record<string, any> = {}) {
       if (params.valor_max && params.valor_max !== 'all') {
         filteredData = filteredData.filter(t => t.valor <= Number(params.valor_max))
       }
-      if (params.status && params.status !== 'all') {
-        filteredData = filteredData.filter(t => t.status_simulado.toLowerCase() === params.status.toLowerCase())
-      }
     } catch (e) {
       console.error("Anomalies endpoint failed, fallback to none", e)
       filteredData = []
@@ -89,16 +83,11 @@ export async function fetchTransactions(params: Record<string, any> = {}) {
     const response = await api.get('/transactions', { params })
     const data = response.data.items ? response.data.items : Array.isArray(response.data) ? response.data : []
     
-    // Injeta os Status Falsos visuais "Aprovada vs Normal"
-    filteredData = data.map((t: any) => ({
-      ...t,
-      status_simulado: (t.id % 5 === 0) ? 'Normal' : 'Aprovada'
-    }))
-    
+    filteredData = [...data]
     isServerPaginated = true
     serverSideTotal = response.data.total || data.length
 
-    // Search por estabelecimento ou conta
+    // Search por estabelecimento ou conta localmente (caso a API ignore)
     if (params.search) {
       const q = params.search.toLowerCase()
       filteredData = filteredData.filter(t => 
@@ -107,8 +96,8 @@ export async function fetchTransactions(params: Record<string, any> = {}) {
       )
     }
 
-    if (params.status && params.status !== 'all') {
-      filteredData = filteredData.filter(t => t.status_simulado.toLowerCase() === params.status.toLowerCase())
+    if (params.status === 'aprovada') {
+      filteredData = filteredData.filter(t => !t.is_fraude)
     }
   }
 
@@ -170,16 +159,14 @@ export async function fetchAnomalies(params: Record<string, any> = {}) {
 // Dashboard
 export async function fetchDashboard() {
   try {
-    // Buscar transações para agregação (limitado a 500 para os gráficos apenas)
+    // Obter Totais reais sem invenção matemática
     const allTransactions = await fetchTransactions({ limit: 500 })
+    const totalTransactionsReal = allTransactions.total || 0
     
-    // Obter Total REAL de Anomalias consultando o endpoint da IA
     const anomaliesRes = await api.get('/anomalies')
     const totalAnomaliesReal = anomaliesRes.data.total || 0
 
     const transactionsList = allTransactions.items
-
-    let totalAnomalies = 0
     let totalMovido = 0
 
     const volumeDiasMap = new Map<string, number>()
@@ -192,13 +179,6 @@ export async function fetchDashboard() {
     }
     const horaMap = new Map<string, number>()
     const userAnomaliasMap = new Map<string, number>()
-    const scoreBuckets = {
-      '0-20': 0,
-      '21-40': 0,
-      '41-60': 0,
-      '61-80': 0,
-      '81-100': 0,
-    }
 
     transactionsList.forEach((t) => {
       totalMovido += t.valor
@@ -220,17 +200,6 @@ export async function fetchDashboard() {
       // Transações por Hora
       const horaStr = t.hora ? t.hora.substring(0, 2) + ':00' : '00:00'
       horaMap.set(horaStr, (horaMap.get(horaStr) || 0) + 1)
-
-      // Score de risco (Calculado determinísticamente via atributos já que o DB não salva score)
-      let score = 5 + (t.id % 15) // base score 5-19
-      if (t.is_fraude) score = 85 + (t.id % 15) // fraude score 85-99
-      else if (t.tentativas > 1) score = 40 + (t.id % 20) // suspeito 40-59
-
-      if (score <= 20) scoreBuckets['0-20']++
-      else if (score <= 40) scoreBuckets['21-40']++
-      else if (score <= 60) scoreBuckets['41-60']++
-      else if (score <= 80) scoreBuckets['61-80']++
-      else scoreBuckets['81-100']++
     })
 
     const totalTx = transactionsList.length || 1
@@ -271,8 +240,6 @@ export async function fetchDashboard() {
         if (d.getMonth() === currentMonth - 1 && d.getFullYear() === currentYear) isPrevMonth = true
       }
 
-      // Se a base de dados não tiver datas sincronizadas real time, espalhamos pra simular dinâmico baseado nela ser par/ímpar do dia (gambiarra segura pra base estática mock):
-      // Porém pra seguir O CÁLCULO GERAL:
       if (isCurrentMonth) {
         trCurrent++
         valorCurrent += t.valor
@@ -296,13 +263,13 @@ export async function fetchDashboard() {
       return ((atual - passado) / passado) * 100
     }
 
-    const percAnomalias = transactionsList.length > 0 ? (totalAnomaliesReal / 30000) * 100 : 0
+    const percAnomalias = totalTransactionsReal > 0 ? (totalAnomaliesReal / totalTransactionsReal) * 100 : 0
     
-    // Extrapola o valor monetário das 500 transações locais para o volume de escala real das 30.000
-    const valorFinanceiroExtrapolado = transactionsList.length > 0 ? (totalMovido / transactionsList.length) * 30000 : 0
+    // Extrapola o valor monetário das 500 transações amostrais para o volume total indicado pela API
+    const valorFinanceiroExtrapolado = transactionsList.length > 0 ? (totalMovido / transactionsList.length) * totalTransactionsReal : 0
 
     return {
-      total_transactions: 30000,
+      total_transactions: totalTransactionsReal,
       total_anomalies: totalAnomaliesReal,
       anomaly_percentage: percAnomalias,
       total_movimentado: valorFinanceiroExtrapolado,
@@ -310,12 +277,12 @@ export async function fetchDashboard() {
       // Comparações dinâmicas mês atual vs mês passado:
       comparacao_transacoes: calcPerc(trCurrent, trPrev),
       comparacao_anomalias: calcPerc(anomCurrent, anomPrev),
-      comparacao_aprovadas: calcPerc(aprovCurrent, aprovPrev), // Será 0 já que db não mapeia fraude aprovada
+      comparacao_aprovadas: calcPerc(aprovCurrent, aprovPrev),
       comparacao_valor: calcPerc(valorCurrent, valorPrev),
       
-      // Gráficos de Pizza mapeados perfeitamente com Totais Universais da API
+      // Gráficos de Pizza sem mocks
       distribuicao_transacoes: [
-        { name: 'Normal', value: 30000 - totalAnomaliesReal },
+        { name: 'Normal', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
         { name: 'Anomalia', value: totalAnomaliesReal }
       ],
       volume_dias: volumeDiasOrdenado,
@@ -325,7 +292,6 @@ export async function fetchDashboard() {
         { name: 'Bloqueada', value: totalAnomaliesReal }
       ],
       transacoes_hora: horasOrdenadas,
-      distribuicao_score: Object.entries(scoreBuckets).map(([name, value]) => ({ name, value })),
       top_usuarios: topUsuarios,
     }
   } catch (error) {

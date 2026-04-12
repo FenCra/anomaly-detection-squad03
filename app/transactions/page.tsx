@@ -194,9 +194,7 @@ export default function TransactionsPage() {
             >
               <option value="all">Status</option>
               <option value="aprovada">Aprovada</option>
-              <option value="normal">Normal</option>
-              <option value="bloqueada">Bloqueada</option>
-              <option value="anomalia">Anomalia (Revisão)</option>
+              <option value="negada">Negada</option>
             </select>
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
           </div>
@@ -249,10 +247,8 @@ export default function TransactionsPage() {
                 <tbody className="divide-y divide-gray-100 bg-white border-x border-b border-gray-200">
                   {transactions.map((transaction) => {
                     const isFraude = transaction.is_fraude
-                    const statusText = isFraude ? 'Anomalia' : 'Aprovada'
-                    
-                    let statusClass = 'bg-green-400 text-white'
-                    if (isFraude) statusClass = 'bg-yellow-500 text-white text-[10px]'
+                    const statusClass = isFraude ? 'bg-red-500 text-white' : 'bg-green-400 text-white'
+                    const statusText = isFraude ? 'Negada' : 'Aprovada'
                     
                     return (
                     <tr
@@ -275,7 +271,7 @@ export default function TransactionsPage() {
                       </td>
                       <td className="px-6 py-4 text-gray-600">{transaction.cidade}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-block w-32 text-center px-4 py-2 rounded-full text-xs font-bold shadow-sm ${statusClass}`}>
+                        <span className={`inline-block w-28 text-center px-4 py-2 rounded-full text-xs font-bold shadow-sm ${statusClass}`}>
                           {statusText}
                         </span>
                       </td>
