@@ -39,79 +39,122 @@ export async function fetchTransactions(params: Record<string, any> = {}) {
   let isServerPaginated = false
   let serverSideTotal = 0
 
-  const requestAnomalies = params.is_fraude === true || params.status === 'anomalia'
+  // 'negada' → GET /anomalies (tudo de uma vez, paginação client-side)
+  // 'aprovada' → GET /transactions em batch grande + filtro + paginação client-side (API não tem filtro is_fraude=false)
+  const requestAnomalies = params.is_fraude === true || params.status === 'negada'
+  const requestAprovada = params.status === 'aprovada'
 
-  // Se o filtro pede APENAS FRAUDES/ANOMALIAS, buscar da rota da inteligência
   if (requestAnomalies) {
+    // Rota de Anomalias: GET /anomalies (traz tudo de uma vez, sem paginação server-side)
     try {
-      const anomaliesRes = await api.get('/anomalies', { params })
+      const anomaliesRes = await api.get('/anomalies')
       filteredData = (anomaliesRes.data.items || []).map((a: any) => ({
         ...a,
         is_fraude: true,
         latitude: 0,
         longitude: 0,
-        tipo_transacao: 'N/A',
-        estado: 'N/A',
-        pais: 'N/A',
-        ip_origem: 'N/A'
+        tipo_transacao: a.tipo_transacao || 'N/A',
+        estado: a.estado || 'N/A',
+        pais: a.pais || 'N/A',
+        ip_origem: a.ip_origem || 'N/A',
       }))
 
-      // Aplica Filtros Client-Side porque a rota em Python /anomalies não intercepta query params comuns
+      // Filtros client-side para /anomalies (endpoint não aceita query params complexos)
       if (params.search) {
         const q = params.search.toLowerCase()
-        filteredData = filteredData.filter(t => 
-          (t.cidade && t.cidade.toLowerCase().includes(q)) || 
+        filteredData = filteredData.filter(t =>
+          (t.cidade && t.cidade.toLowerCase().includes(q)) ||
           (t.conta && t.conta.toLowerCase().includes(q)) ||
+          (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
           (t.motivo && t.motivo.toLowerCase().includes(q))
         )
       }
       if (params.categoria && params.categoria !== 'all') {
-        filteredData = filteredData.filter(t => t.categoria.toLowerCase() === params.categoria.toLowerCase())
+        filteredData = filteredData.filter(t => t.categoria?.toLowerCase() === params.categoria.toLowerCase())
       }
       if (params.cidade && params.cidade !== 'all') {
-        filteredData = filteredData.filter(t => t.cidade.toLowerCase() === params.cidade.toLowerCase())
+        filteredData = filteredData.filter(t => t.cidade?.toLowerCase().includes(params.cidade.toLowerCase()))
       }
-      if (params.valor_max && params.valor_max !== 'all') {
-        filteredData = filteredData.filter(t => t.valor <= Number(params.valor_max))
-      }
+      if (params.valor_min) filteredData = filteredData.filter(t => t.valor >= Number(params.valor_min))
+      if (params.valor_max && params.valor_max !== 'all') filteredData = filteredData.filter(t => t.valor <= Number(params.valor_max))
     } catch (e) {
-      console.error("Anomalies endpoint failed, fallback to none", e)
+      console.error('Anomalies endpoint failed:', e)
+      filteredData = []
+    }
+  } else if (requestAprovada) {
+    // Filtro 'Aprovada': busca batch grande e filtra client-side (API não suporta is_fraude=false ainda)
+    // Isso garante que o total e a paginação reflitam apenas transações não-fraude
+    try {
+      const batchRes = await api.get('/transactions', { params: { limit: 2000, skip: 0 } })
+      const batchData = batchRes.data.items || []
+      filteredData = batchData.filter((t: any) => !t.is_fraude)
+
+      if (params.search) {
+        const q = params.search.toLowerCase()
+        filteredData = filteredData.filter((t: any) =>
+          (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
+          (t.conta && t.conta.toLowerCase().includes(q))
+        )
+      }
+      if (params.categoria && params.categoria !== 'all') {
+        filteredData = filteredData.filter((t: any) => t.categoria?.toLowerCase() === params.categoria.toLowerCase())
+      }
+      if (params.cidade && params.cidade !== 'all') {
+        filteredData = filteredData.filter((t: any) => t.cidade?.toLowerCase().includes(params.cidade.toLowerCase()))
+      }
+      if (params.valor_min) filteredData = filteredData.filter((t: any) => t.valor >= Number(params.valor_min))
+      if (params.valor_max && params.valor_max !== 'all') filteredData = filteredData.filter((t: any) => t.valor <= Number(params.valor_max))
+    } catch (e) {
+      console.error('Approved transactions batch failed:', e)
       filteredData = []
     }
   } else {
-    // Busca transações Normais pelo Backend
-    const response = await api.get('/transactions', { params })
+    // Rota Principal: GET /transactions — filtros delegados ao servidor (SQL WHERE via crud.py)
+    // A API já aceita: categoria, cidade, valor_min, valor_max, tipo_transacao, dispositivo,
+    // data_inicio, data_fim, conta, skip, limit. Enviamos direto sem reprocessar client-side.
+    const serverParams: Record<string, any> = {}
+    if (params.limit)          serverParams.limit = params.limit
+    if (params.skip)           serverParams.skip = params.skip
+    if (params.categoria && params.categoria !== 'all') serverParams.categoria = params.categoria
+    if (params.cidade && params.cidade !== 'all')       serverParams.cidade = params.cidade
+    if (params.valor_min)      serverParams.valor_min = params.valor_min
+    if (params.valor_max && params.valor_max !== 'all') serverParams.valor_max = params.valor_max
+    if (params.tipo_transacao && params.tipo_transacao !== 'all') serverParams.tipo_transacao = params.tipo_transacao
+    if (params.dispositivo && params.dispositivo !== 'all') serverParams.dispositivo = params.dispositivo
+    if (params.data_inicio)    serverParams.data_inicio = params.data_inicio
+    if (params.data_fim)       serverParams.data_fim = params.data_fim
+    if (params.conta)          serverParams.conta = params.conta
+
+    const response = await api.get('/transactions', { params: serverParams })
     const data = response.data.items ? response.data.items : Array.isArray(response.data) ? response.data : []
-    
+
     filteredData = [...data]
     isServerPaginated = true
     serverSideTotal = response.data.total || data.length
 
-    // Search por estabelecimento ou conta localmente (caso a API ignore)
+    // Search client-side (API não suporta campo de busca livre ainda)
     if (params.search) {
       const q = params.search.toLowerCase()
-      filteredData = filteredData.filter(t => 
-        (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) || 
+      filteredData = filteredData.filter(t =>
+        (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
         (t.conta && t.conta.toLowerCase().includes(q))
       )
     }
-
-    if (params.status === 'aprovada') {
-      filteredData = filteredData.filter(t => !t.is_fraude)
-    }
   }
 
-  // Paginação Manual Client-side (somente rola se a API local/simulada for usada, no caso `GET /anomalies` que devolve tudo de uma vez)
+
+  // Paginação:
+  // - Transações normais (server-side): API cuida do skip/limit diretamente
+  // - Anomalias e Aprovadas (client-side): paginamos o array filtrado aqui
   const limit = params.limit ? Number(params.limit) : 50
   const skip = params.skip ? Number(params.skip) : 0
-  
-  const finalItems = isServerPaginated ? filteredData : (limit > 0 && !params.disable_pagination ? filteredData.slice(skip, skip + limit) : filteredData)
+
+  const finalItems = isServerPaginated
+    ? filteredData
+    : filteredData.slice(skip, skip + limit)
   const finalTotal = isServerPaginated ? serverSideTotal : filteredData.length
 
-  return {
-    total: finalTotal,
-    items: finalItems,
-  }
+  return { total: finalTotal, items: finalItems }
 }
 
 export async function fetchTransaction(id: number) {
@@ -121,6 +164,13 @@ export async function fetchTransaction(id: number) {
 
 export async function createTransaction(data: Partial<Transaction>) {
   const response = await api.post<Transaction>('/transactions', data)
+  return response.data
+}
+
+// Julgamento de Transação 
+// Dispara PATCH /transactions/{id} para registrar o veredito do analista no banco de dados.
+export async function patchTransaction(id: number, payload: Partial<Pick<Transaction, 'is_fraude'>>) {
+  const response = await api.patch<Transaction>(`/transactions/${id}`, payload)
   return response.data
 }
 
@@ -159,10 +209,11 @@ export async function fetchAnomalies(params: Record<string, any> = {}) {
 // Dashboard
 export async function fetchDashboard() {
   try {
-    // Obter Totais reais sem invenção matemática
-    const allTransactions = await fetchTransactions({ limit: 500 })
+    // Busca amostra de 1000 para maior precisão dos gráficos de barras e pizza
+    // O total de transações real vem do campo `total` da API (COUNT(*) do banco)
+    const allTransactions = await fetchTransactions({ limit: 1000 })
     const totalTransactionsReal = allTransactions.total || 0
-    
+
     const anomaliesRes = await api.get('/anomalies')
     const totalAnomaliesReal = anomaliesRes.data.total || 0
 
@@ -264,15 +315,18 @@ export async function fetchDashboard() {
     }
 
     const percAnomalias = totalTransactionsReal > 0 ? (totalAnomaliesReal / totalTransactionsReal) * 100 : 0
-    
-    // Extrapola o valor monetário das 500 transações amostrais para o volume total indicado pela API
-    const valorFinanceiroExtrapolado = transactionsList.length > 0 ? (totalMovido / transactionsList.length) * totalTransactionsReal : 0
+
+    // Valor movimentado: extrapolado da amostra de 1000 para o total real do banco
+    // (estimativa proporcional — endpoint /dashboard/metrics no backend tornaria isso exato)
+    const valorExtrapolado = transactionsList.length > 0
+      ? (totalMovido / transactionsList.length) * totalTransactionsReal
+      : 0
 
     return {
       total_transactions: totalTransactionsReal,
       total_anomalies: totalAnomaliesReal,
       anomaly_percentage: percAnomalias,
-      total_movimentado: valorFinanceiroExtrapolado,
+      total_movimentado: valorExtrapolado,
 
       // Comparações dinâmicas mês atual vs mês passado:
       comparacao_transacoes: calcPerc(trCurrent, trPrev),

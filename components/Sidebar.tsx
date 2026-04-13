@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 
-import { DashboardIcon, TransactionsIcon } from './Icons'
+import { DashboardIcon, TransactionsIcon, FlaskIcon } from './Icons'
 
 const menuItems = [
   { href: '/', label: 'Dashboard', icon: DashboardIcon },
   { href: '/transactions', label: 'Transações', icon: TransactionsIcon },
+  { href: '/laboratorio', label: 'Laboratório ML', icon: FlaskIcon },
 ]
 
 export default function Sidebar() {

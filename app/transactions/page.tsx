@@ -63,32 +63,21 @@ export default function TransactionsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
 
-  const handleFilterChange = (key: keyof Filters, value: any) => {
-    const newFilters = { ...filters, [key]: value }
-    if (value === '' || value === 'all' || value === undefined) {
-      delete newFilters[key]
-    }
-    setFilters(newFilters)
-    setCurrentPage(0)
-    loadTransactions(newFilters)
-  }
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFilterChange('search', e.target.value)
-  }
-
-  const loadTransactions = async (newFilters?: Filters) => {
+  // Recebe page e size explicitamente para evitar leitura de state React stale (async)
+  const loadTransactions = async (activeFilters: Filters, page: number, size: number) => {
     setLoading(true)
+    setError(null)
     try {
-      const params = {
-        limit: pageSize,
-        skip: currentPage * pageSize,
-        ...newFilters,
+      const params: Record<string, any> = {
+        limit: size,
+        skip: page * size,
+        ...activeFilters,
       }
 
+      // Remove params vazios antes de enviar
       Object.keys(params).forEach((key) => {
-        if (params[key as keyof typeof params] === undefined || params[key as keyof typeof params] === '') {
-          delete params[key as keyof typeof params]
+        if (params[key] === undefined || params[key] === '' || params[key] === 'all') {
+          delete params[key]
         }
       })
 
@@ -102,29 +91,58 @@ export default function TransactionsPage() {
     }
   }
 
+  // Ao mudar filtro: zera página e já passa page=0 explicitamente (não depende do setState async)
+  const handleFilterChange = (key: keyof Filters, value: any) => {
+    const newFilters = { ...filters, [key]: value }
+    if (value === '' || value === 'all' || value === undefined) {
+      delete newFilters[key]
+    }
+    setFilters(newFilters)
+    setCurrentPage(0)
+    loadTransactions(newFilters, 0, pageSize)
+  }
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFilterChange('search', e.target.value)
+  }
+
+  // Disparado nos cliques de navegação de página
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+    loadTransactions(filters, page, pageSize)
+  }
+
+  // Disparado na mudança de itens por página: zera para página 0
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize)
+    setCurrentPage(0)
+    loadTransactions(filters, 0, newSize)
+  }
+
   useEffect(() => {
-    loadTransactions(filters)
-  }, [currentPage, pageSize])
+    loadTransactions(filters, 0, pageSize)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setCurrentPage(0)
-    loadTransactions(filters)
+    loadTransactions(filters, 0, pageSize)
     setShowFilters(false)
   }
 
   const handleClearFilters = () => {
     setFilters({})
     setCurrentPage(0)
-    loadTransactions({})
+    loadTransactions({}, 0, pageSize)
   }
 
   const handleCreateSuccess = () => {
     setShowCreateModal(false)
-    loadTransactions(filters)
+    loadTransactions(filters, currentPage, pageSize)
   }
 
-  const totalPages = Math.ceil(total / pageSize)
+  const totalPages = Math.ceil(total / pageSize) || 1
 
   return (
     <div className="space-y-6">
@@ -288,10 +306,7 @@ export default function TransactionsPage() {
                   Itens por página:
                   <select
                     value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(parseInt(e.target.value))
-                      setCurrentPage(0)
-                    }}
+                    onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
                     className="ml-2 px-2 py-1 border border-gray-300 rounded"
                   >
                     <option value="10">10</option>
@@ -299,18 +314,21 @@ export default function TransactionsPage() {
                     <option value="50">50</option>
                   </select>
                 </label>
+                <span className="text-sm text-gray-500">
+                  {total} resultado{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
+                </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentPage(0)}
+                  onClick={() => goToPage(0)}
                   disabled={currentPage === 0}
                   className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center p-2 text-gray-500"
                 >
                   <ChevronsLeftIcon />
                 </button>
                 <button
-                  onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                  onClick={() => goToPage(Math.max(0, currentPage - 1))}
                   disabled={currentPage === 0}
                   className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center p-2 text-gray-500"
                 >
@@ -320,14 +338,14 @@ export default function TransactionsPage() {
                   Página {currentPage + 1} de {totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                  onClick={() => goToPage(Math.min(totalPages - 1, currentPage + 1))}
                   disabled={currentPage >= totalPages - 1}
                   className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center p-2 text-gray-500"
                 >
                   <ChevronRightIcon />
                 </button>
                 <button
-                  onClick={() => setCurrentPage(totalPages - 1)}
+                  onClick={() => goToPage(totalPages - 1)}
                   disabled={currentPage >= totalPages - 1}
                   className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center p-2 text-gray-500"
                 >
