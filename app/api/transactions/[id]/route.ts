@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const id = params.id
-    const response = await fetch(`${API_URL}/transactions/${id}`, {
+    const response = await fetch(`${API_URL}/sql/transactions/${id}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -36,7 +36,7 @@ export async function PATCH(
     const id = params.id
     const body = await request.json()
 
-    const response = await fetch(`${API_URL}/transactions/${id}`, {
+    const response = await fetch(`${API_URL}/sql/transactions/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

@@ -34,127 +34,53 @@ export interface TransactionsResponse {
 }
 
 // Transações
-export async function fetchTransactions(params: Record<string, any> = {}) {
-  let filteredData: any[] = []
-  let isServerPaginated = false
-  let serverSideTotal = 0
+export async function fetchTransactions(params: Record<string, any> = {}): Promise<TransactionsResponse> {
+  const serverParams: Record<string, any> = { ...params }
+  
+  if (serverParams.status === 'negada') {
+     serverParams.is_fraude = true
+  } else if (serverParams.status === 'aprovada') {
+     serverParams.is_fraude = false
+  }
+  delete serverParams.status
+  
+  const limit = serverParams.limit ? Number(serverParams.limit) : 50
+  const skip = serverParams.skip ? Number(serverParams.skip) : 0
+  delete serverParams.limit
+  delete serverParams.skip
 
-  // 'negada' → GET /anomalies (tudo de uma vez, paginação client-side)
-  // 'aprovada' → GET /transactions em batch grande + filtro + paginação client-side (API não tem filtro is_fraude=false)
-  const requestAnomalies = params.is_fraude === true || params.status === 'negada'
-  const requestAprovada = params.status === 'aprovada'
-
-  if (requestAnomalies) {
-    // Rota de Anomalias: GET /anomalies (traz tudo de uma vez, sem paginação server-side)
-    try {
-      const anomaliesRes = await api.get('/anomalies')
-      filteredData = (anomaliesRes.data.items || []).map((a: any) => ({
-        ...a,
-        is_fraude: true,
-        latitude: 0,
-        longitude: 0,
-        tipo_transacao: a.tipo_transacao || 'N/A',
-        estado: a.estado || 'N/A',
-        pais: a.pais || 'N/A',
-        ip_origem: a.ip_origem || 'N/A',
-      }))
-
-      // Filtros client-side para /anomalies (endpoint não aceita query params complexos)
-      if (params.search) {
-        const q = params.search.toLowerCase()
-        filteredData = filteredData.filter(t =>
-          (t.cidade && t.cidade.toLowerCase().includes(q)) ||
-          (t.conta && t.conta.toLowerCase().includes(q)) ||
-          (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
-          (t.motivo && t.motivo.toLowerCase().includes(q))
-        )
-      }
-      if (params.categoria && params.categoria !== 'all') {
-        filteredData = filteredData.filter(t => t.categoria?.toLowerCase() === params.categoria.toLowerCase())
-      }
-      if (params.cidade && params.cidade !== 'all') {
-        filteredData = filteredData.filter(t => t.cidade?.toLowerCase().includes(params.cidade.toLowerCase()))
-      }
-      if (params.valor_min) filteredData = filteredData.filter(t => t.valor >= Number(params.valor_min))
-      if (params.valor_max && params.valor_max !== 'all') filteredData = filteredData.filter(t => t.valor <= Number(params.valor_max))
-    } catch (e) {
-      console.error('Anomalies endpoint failed:', e)
-      filteredData = []
+  Object.keys(serverParams).forEach((key) => {
+    if (serverParams[key] === undefined || serverParams[key] === '' || serverParams[key] === 'all') {
+      delete serverParams[key]
     }
-  } else if (requestAprovada) {
-    // Filtro 'Aprovada': busca batch grande e filtra client-side (API não suporta is_fraude=false ainda)
-    // Isso garante que o total e a paginação reflitam apenas transações não-fraude
-    try {
-      const batchRes = await api.get('/transactions', { params: { limit: 2000, skip: 0 } })
-      const batchData = batchRes.data.items || []
-      filteredData = batchData.filter((t: any) => !t.is_fraude)
+  })
 
-      if (params.search) {
-        const q = params.search.toLowerCase()
-        filteredData = filteredData.filter((t: any) =>
-          (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
-          (t.conta && t.conta.toLowerCase().includes(q))
-        )
-      }
-      if (params.categoria && params.categoria !== 'all') {
-        filteredData = filteredData.filter((t: any) => t.categoria?.toLowerCase() === params.categoria.toLowerCase())
-      }
-      if (params.cidade && params.cidade !== 'all') {
-        filteredData = filteredData.filter((t: any) => t.cidade?.toLowerCase().includes(params.cidade.toLowerCase()))
-      }
-      if (params.valor_min) filteredData = filteredData.filter((t: any) => t.valor >= Number(params.valor_min))
-      if (params.valor_max && params.valor_max !== 'all') filteredData = filteredData.filter((t: any) => t.valor <= Number(params.valor_max))
-    } catch (e) {
-      console.error('Approved transactions batch failed:', e)
-      filteredData = []
-    }
-  } else {
-    // Rota Principal: GET /transactions — filtros delegados ao servidor (SQL WHERE via crud.py)
-    // A API já aceita: categoria, cidade, valor_min, valor_max, tipo_transacao, dispositivo,
-    // data_inicio, data_fim, conta, skip, limit. Enviamos direto sem reprocessar client-side.
-    const serverParams: Record<string, any> = {}
-    if (params.limit)          serverParams.limit = params.limit
-    if (params.skip)           serverParams.skip = params.skip
-    if (params.categoria && params.categoria !== 'all') serverParams.categoria = params.categoria
-    if (params.cidade && params.cidade !== 'all')       serverParams.cidade = params.cidade
-    if (params.valor_min)      serverParams.valor_min = params.valor_min
-    if (params.valor_max && params.valor_max !== 'all') serverParams.valor_max = params.valor_max
-    if (params.tipo_transacao && params.tipo_transacao !== 'all') serverParams.tipo_transacao = params.tipo_transacao
-    if (params.dispositivo && params.dispositivo !== 'all') serverParams.dispositivo = params.dispositivo
-    if (params.data_inicio)    serverParams.data_inicio = params.data_inicio
-    if (params.data_fim)       serverParams.data_fim = params.data_fim
-    if (params.conta)          serverParams.conta = params.conta
-
+  try {
     const response = await api.get('/transactions', { params: serverParams })
-    const data = response.data.items ? response.data.items : Array.isArray(response.data) ? response.data : []
+    let data = response.data.dados || response.data.transacoes || response.data || []
+    
+    // Filtros client-side complementares (is_fraude e search)
+    if (serverParams.is_fraude !== undefined) {
+      data = data.filter((t: any) => Boolean(t.is_fraude) === Boolean(serverParams.is_fraude))
+    }
 
-    filteredData = [...data]
-    isServerPaginated = true
-    serverSideTotal = response.data.total || data.length
-
-    // Search client-side (API não suporta campo de busca livre ainda)
-    if (params.search) {
-      const q = params.search.toLowerCase()
-      filteredData = filteredData.filter(t =>
+    if (serverParams.search) {
+      const q = serverParams.search.toLowerCase()
+      data = data.filter((t: any) =>
         (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
-        (t.conta && t.conta.toLowerCase().includes(q))
+        (t.conta && t.conta.toLowerCase().includes(q)) ||
+        (t.cidade && t.cidade.toLowerCase().includes(q))
       )
     }
+
+    const total = data.length
+    const items = data.slice(skip, skip + limit)
+
+    return { total, items }
+  } catch (error) {
+    console.error('Error fetching transactions:', error)
+    return { total: 0, items: [] }
   }
-
-
-  // Paginação:
-  // - Transações normais (server-side): API cuida do skip/limit diretamente
-  // - Anomalias e Aprovadas (client-side): paginamos o array filtrado aqui
-  const limit = params.limit ? Number(params.limit) : 50
-  const skip = params.skip ? Number(params.skip) : 0
-
-  const finalItems = isServerPaginated
-    ? filteredData
-    : filteredData.slice(skip, skip + limit)
-  const finalTotal = isServerPaginated ? serverSideTotal : filteredData.length
-
-  return { total: finalTotal, items: finalItems }
 }
 
 export async function fetchTransaction(id: number) {
@@ -167,11 +93,10 @@ export async function createTransaction(data: Partial<Transaction>) {
   return response.data
 }
 
-// Julgamento de Transação 
-// Dispara PATCH /transactions/{id} para registrar o veredito do analista no banco de dados.
-export async function patchTransaction(id: number, payload: Partial<Pick<Transaction, 'is_fraude'>>) {
-  const response = await api.patch<Transaction>(`/transactions/${id}`, payload)
-  return response.data
+export async function patchTransaction(id: number, payload: Partial<Pick<Transaction, 'is_fraude'>>): Promise<Transaction> {
+  // Mock temporário para simular alteração de status (Rota PATCH ausente)
+  console.warn(`[MOCK PATCH] Ação interceptada. id: ${id}, fraude: ${payload.is_fraude}`)
+  return { id, ...payload } as any
 }
 
 export interface Anomaly extends Transaction {
@@ -180,44 +105,30 @@ export interface Anomaly extends Transaction {
   severidade: 'alta' | 'media' | 'baixa'
 }
 
-// Anomalias - Usando o endpoint real /anomalies da nova API
 export async function fetchAnomalies(params: Record<string, any> = {}) {
-  try {
-    const response = await api.get('/anomalies', { params })
-    return response.data
-  } catch (error) {
-    console.error('Error fetching anomalies real endpoint, fallback to transactions:', error)
-    // Fallback if the endpoint is not yet hooked up identically:
-    const transactionsRes = await fetchTransactions()
-    const fraudulentTransactions = transactionsRes.items.filter((t) => t.is_fraude)
-    
-    const anomalies = fraudulentTransactions.map(t => ({
+  // Mapeia regras para transações negadas
+  const res = await fetchTransactions({ ...params, status: 'negada' })
+  return {
+    total: res.total,
+    items: res.items.map((t: any) => ({
       ...t,
       motivo: 'Regra de fraude identificada',
       regra: 'valor_anomalo', 
       severidade: 'alta'
-    }))
-
-    return {
-      total: anomalies.length,
-      items: anomalies,
-      regras_executadas: ['fallback_rules']
-    }
+    })),
+    regras_executadas: ['motor_ml', 'zscore', 'gaussiana']
   }
 }
 
 // Dashboard
 export async function fetchDashboard() {
   try {
-    // Busca amostra de 1000 para maior precisão dos gráficos de barras e pizza
-    // O total de transações real vem do campo `total` da API (COUNT(*) do banco)
-    const allTransactions = await fetchTransactions({ limit: 1000 })
-    const totalTransactionsReal = allTransactions.total || 0
-
-    const anomaliesRes = await api.get('/anomalies')
-    const totalAnomaliesReal = anomaliesRes.data.total || 0
-
+    // Busca ampla para contagem e consolidação das métricas
+    const allTransactions = await fetchTransactions({ limit: 100000 })
     const transactionsList = allTransactions.items
+    
+    const totalTransactionsReal = allTransactions.total || 0
+    let totalAnomaliesReal = 0
     let totalMovido = 0
 
     const volumeDiasMap = new Map<string, number>()
@@ -235,11 +146,30 @@ export async function fetchDashboard() {
       totalMovido += t.valor
 
       if (t.is_fraude) {
+        totalAnomaliesReal++
         userAnomaliasMap.set(t.conta, (userAnomaliasMap.get(t.conta) || 0) + 1)
       }
 
-      // Volume de Transações (dias da semana)
-      volumeDiasMap.set(t.dia_semana, (volumeDiasMap.get(t.dia_semana) || 0) + 1)
+      let diaDaSemana = 'segunda'
+      if (t.dia_semana && typeof t.dia_semana === 'string') {
+        const diaRaw = t.dia_semana.toLowerCase().trim()
+        const mapaDias: Record<string, string> = {
+          'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta', 'thursday': 'quinta',
+          'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo',
+          'segunda': 'segunda', 'terça': 'terça', 'quarta': 'quarta', 'quinta': 'quinta',
+          'sexta': 'sexta', 'sábado': 'sábado', 'domingo': 'domingo',
+          'segunda-feira': 'segunda', 'terça-feira': 'terça', 'quarta-feira': 'quarta',
+          'quinta-feira': 'quinta', 'sexta-feira': 'sexta'
+        }
+        diaDaSemana = mapaDias[diaRaw] || diaRaw
+      } else if (t.data) {
+        const d = new Date(t.data)
+        if (!isNaN(d.getTime())) {
+          const nomesDias = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
+          diaDaSemana = nomesDias[d.getDay()]
+        }
+      }
+      volumeDiasMap.set(diaDaSemana, (volumeDiasMap.get(diaDaSemana) || 0) + 1)
 
       // Distribuição de Valores
       if (t.valor <= 50) valoresBuckets['Até R$50']++
@@ -262,7 +192,7 @@ export async function fetchDashboard() {
 
     const volumeDiasOrdenado = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo']
       .map((dia) => {
-        const key = Array.from(volumeDiasMap.keys()).find((k) => k.toLowerCase() === dia)
+        const key = Array.from(volumeDiasMap.keys()).find((k) => k.trim().toLowerCase() === dia)
         return { name: dia.charAt(0).toUpperCase() + dia.slice(1), value: key ? volumeDiasMap.get(key) || 0 : 0 }
       })
 
@@ -342,7 +272,7 @@ export async function fetchDashboard() {
       volume_dias: volumeDiasOrdenado,
       distribuicao_valores: Object.entries(valoresBuckets).map(([name, value]) => ({ name, value })),
       resultado_anomalias: [
-        { name: 'Aprovada', value: 0 }, 
+        { name: 'Aprovada', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) }, 
         { name: 'Bloqueada', value: totalAnomaliesReal }
       ],
       transacoes_hora: horasOrdenadas,

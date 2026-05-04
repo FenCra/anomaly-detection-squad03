@@ -4,17 +4,21 @@ import shutil
 import ijson
 import json
 from fastapi.responses import StreamingResponse
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from collections import Counter
 from models.Guassianasql import Gaussiana as GaussianaSQL
+from models.dados import Transacao
 from models.ZScoresql import ZScore as ZScoreSQL
 import pyodbc
+from fastapi import Query
 
 def get_connection():
     return pyodbc.connect(
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=.;"
+        "SERVER=.\\SQLEXPRESS;"
         "DATABASE=banco;"
         "Trusted_Connection=yes;"
     )
@@ -69,6 +73,117 @@ def get_contas():
     return {
         "mensagem": "Retornando as 100 primeiras contas",
         "contas": contas
+    }
+
+@router.post("/transactions/")
+def inserir_transacao(transacao: Transacao):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO transacoes (
+                id, valor, data, hora, dia_semana, categoria, conta,
+                cidade, estado, pais, latitude, longitude,
+                tipo_transacao, dispositivo, estabelecimento,
+                tentativas, ip_origem, is_fraude
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            transacao.id,
+            transacao.valor,
+            transacao.data,
+            transacao.hora,
+            transacao.dia_semana,
+            transacao.categoria,
+            transacao.conta,
+            transacao.cidade,
+            transacao.estado,
+            transacao.pais,
+            transacao.latitude,
+            transacao.longitude,
+            transacao.tipo_transacao,
+            transacao.dispositivo,
+            transacao.estabelecimento,
+            transacao.tentativas,
+            transacao.ip_origem,
+            int(transacao.is_fraude)  # 🔥 converte bool → bit
+        ))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        return {"erro": str(e)}
+
+    finally:
+        conn.close()
+
+    return {"msg": "Transação inserida com sucesso"}
+
+
+@router.get("/querry/")
+def querry(
+    categoria: str = Query(None),
+    cidade: str = Query(None),
+    valor_min: float = Query(None),
+    valor_max: float = Query(None),
+    tipo_transacao: str = Query(None),
+    dispositivo: str = Query(None),
+    data_inicio: str = Query(None),
+    data_fim: str = Query(None)
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 🔥 base da query
+    query = "SELECT * FROM transacoes WHERE 1=1"
+    params = []
+
+    # 🔥 filtros dinâmicos
+    if categoria:
+        query += " AND categoria = ?"
+        params.append(categoria)
+
+    if cidade:
+        query += " AND cidade = ?"
+        params.append(cidade)
+
+    if valor_min is not None:
+        query += " AND valor >= ?"
+        params.append(valor_min)
+
+    if valor_max is not None:
+        query += " AND valor <= ?"
+        params.append(valor_max)
+
+    if tipo_transacao:
+        query += " AND tipo_transacao = ?"
+        params.append(tipo_transacao)
+
+    if dispositivo:
+        query += " AND dispositivo = ?"
+        params.append(dispositivo)
+
+    if data_inicio:
+        query += " AND data >= ?"
+        params.append(data_inicio)
+
+    if data_fim:
+        query += " AND data <= ?"
+        params.append(data_fim)
+
+    # 🔥 executa
+    cursor.execute(query, params)
+
+    colunas = [col[0] for col in cursor.description]
+    dados = [dict(zip(colunas, row)) for row in cursor.fetchall()]
+
+    conn.close()
+
+    return {
+        "total": len(dados),
+        "dados": dados
     }
 
 @router.get("/calculogaussiana/")

@@ -4,18 +4,18 @@ import shutil
 import ijson
 import json
 from fastapi.responses import StreamingResponse
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from collections import Counter
 from models.Gaussiana import Gaussiana
 from models.ZScore import ZScore
 
-# sql_router requer SQL Server (pyodbc + ODBC Driver 17) instalado localmente.
-# Descomente as linhas abaixo apenas se você tiver SQL Server configurado:
-# from main.sql import router as sql_router
+from main.sql import router as sql_router
 
 app = FastAPI()
-# app.include_router(sql_router, prefix="/sql")
+app.include_router(sql_router, prefix="/sql")
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")

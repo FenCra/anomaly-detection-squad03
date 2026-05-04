@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const endpoint = params.path.join('/')
-    const response = await fetch(`${ML_API_URL}/${endpoint}`, {
+    const response = await fetch(`${ML_API_URL}/sql/${endpoint}`, {
       method: 'GET',
       headers: { 'Accept': 'image/png, application/json' },
       // Cache de 5 minutos — os gráficos não mudam a cada requisição
