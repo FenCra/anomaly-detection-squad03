@@ -12,7 +12,7 @@ from collections import Counter
 from models.Gaussiana import Gaussiana
 from models.ZScore import ZScore
 
-from main.sql import router as sql_router
+from .sql import router as sql_router
 
 app = FastAPI()
 app.include_router(sql_router, prefix="/sql")
