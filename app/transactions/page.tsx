@@ -56,6 +56,7 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filters>({})
   const [showFilters, setShowFilters] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -217,10 +218,65 @@ export default function TransactionsPage() {
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
           </div>
           
-          <button className="px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-            Período
-            <span className="text-gray-400 w-4 h-4"><CalendarIcon /></span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowDatePicker((v) => !v)}
+              className={`px-5 py-2.5 border rounded-full text-sm font-bold flex items-center gap-2 transition-colors ${
+                filters.data_inicio || filters.data_fim
+                  ? 'bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200'
+                  : 'bg-gray-50 border-gray-100 text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              {filters.data_inicio || filters.data_fim
+                ? `${filters.data_inicio || '...'} → ${filters.data_fim || '...'}`
+                : 'Período'}
+              <span className="text-gray-400 w-4 h-4"><CalendarIcon /></span>
+            </button>
+
+            {showDatePicker && (
+              <div className="absolute top-full mt-2 left-0 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 w-72">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Filtrar por período</p>
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">De</label>
+                    <input
+                      type="date"
+                      value={filters.data_inicio || ''}
+                      onChange={(e) => handleFilterChange('data_inicio', e.target.value || undefined)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Até</label>
+                    <input
+                      type="date"
+                      value={filters.data_fim || ''}
+                      onChange={(e) => handleFilterChange('data_fim', e.target.value || undefined)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => {
+                      handleFilterChange('data_inicio', undefined)
+                      handleFilterChange('data_fim', undefined)
+                      setShowDatePicker(false)
+                    }}
+                    className="flex-1 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
+                  >
+                    Limpar
+                  </button>
+                  <button
+                    onClick={() => setShowDatePicker(false)}
+                    className="flex-1 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           
           <button 
             onClick={() => handleFilterChange('is_fraude', filters.is_fraude ? undefined : true)}
