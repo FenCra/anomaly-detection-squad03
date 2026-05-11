@@ -4,15 +4,13 @@ import shutil
 import ijson
 import json
 from fastapi.responses import StreamingResponse
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from collections import Counter
 from models.Gaussiana import Gaussiana
 from models.ZScore import ZScore
 
-from .sql import router as sql_router
+from main.sql import router as sql_router
 
 app = FastAPI()
 app.include_router(sql_router, prefix="/sql")

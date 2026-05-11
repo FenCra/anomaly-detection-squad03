@@ -64,9 +64,9 @@ function GraficoCard({ titulo, descricao, endpoint, id }: {
         <h3 className="font-semibold text-gray-900 text-sm">{titulo}</h3>
         <p className="text-xs text-gray-500 mt-1">{descricao}</p>
       </div>
-      <div className="p-4 flex items-center justify-center min-h-[300px] bg-gray-50 relative">
+      <div className="p-4 bg-gray-50 relative overflow-x-auto">
         {carregando && !erro && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+          <div className="flex items-center justify-center min-h-[300px]">
             <div className="flex flex-col items-center gap-2 text-gray-400">
               <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
               <span className="text-xs">Gerando gráfico...</span>
@@ -74,7 +74,7 @@ function GraficoCard({ titulo, descricao, endpoint, id }: {
           </div>
         )}
         {erro ? (
-          <div className="flex flex-col items-center gap-3 text-center p-6">
+          <div className="flex flex-col items-center gap-3 text-center p-6 min-h-[300px] justify-center">
             <span className="text-orange-400 w-10 h-10">
               <ShieldAlertIcon />
             </span>
@@ -100,7 +100,8 @@ function GraficoCard({ titulo, descricao, endpoint, id }: {
             id={`grafico-${id}`}
             src={endpoint}
             alt={titulo}
-            className={`max-w-full h-auto rounded transition-opacity duration-300 ${carregando ? 'opacity-0' : 'opacity-100'}`}
+            style={{ display: carregando ? 'none' : 'block' }}
+            className="w-full h-auto rounded"
             onLoad={() => setCarregando(false)}
             onError={() => { setErro(true); setCarregando(false) }}
           />
@@ -109,6 +110,7 @@ function GraficoCard({ titulo, descricao, endpoint, id }: {
     </div>
   )
 }
+
 
 export default function LaboratorioPage() {
   return (
