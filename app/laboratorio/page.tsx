@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ShieldAlertIcon } from '@/components/Icons'
 
 // Gráficos disponíveis na API de ML (Pasta Anomalias)
@@ -49,14 +49,30 @@ const ML_GRAFICOS = [
   },
 ]
 
-function GraficoCard({ titulo, descricao, endpoint, id }: {
+function GraficoCard({ titulo, descricao, endpoint, id, delay }: {
   titulo: string
   descricao: string
   endpoint: string
   id: string
+  delay: number
 }) {
   const [erro, setErro] = useState(false)
   const [carregando, setCarregando] = useState(true)
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSrc(endpoint)
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [endpoint, delay])
+
+  const retry = () => {
+    setErro(false)
+    setCarregando(true)
+    setSrc(null)
+    setTimeout(() => setSrc(endpoint), 100)
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
@@ -83,34 +99,27 @@ function GraficoCard({ titulo, descricao, endpoint, id }: {
               <p className="text-xs text-gray-400 mt-1">
                 Certifique-se que a API da pasta <code className="bg-gray-100 px-1 rounded">Anomalias</code> está rodando na porta <strong>8001</strong>.
               </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Comando: <code className="bg-gray-100 px-1 rounded">uvicorn main:app --port 8001</code>
-              </p>
             </div>
-            <button
-              onClick={() => { setErro(false); setCarregando(true) }}
-              className="text-xs text-blue-600 hover:underline mt-1"
-            >
+            <button onClick={retry} className="text-xs text-blue-600 hover:underline mt-1">
               Tentar novamente
             </button>
           </div>
-        ) : (
+        ) : src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             id={`grafico-${id}`}
-            src={endpoint}
+            src={src}
             alt={titulo}
             style={{ display: carregando ? 'none' : 'block' }}
             className="w-full h-auto rounded"
             onLoad={() => setCarregando(false)}
             onError={() => { setErro(true); setCarregando(false) }}
           />
-        )}
+        ) : null}
       </div>
     </div>
   )
 }
-
 
 export default function LaboratorioPage() {
   return (
@@ -135,10 +144,10 @@ export default function LaboratorioPage() {
         </div>
       </div>
 
-      {/* Grid de Gráficos */}
+      {/* Grid de Gráficos — delay escalonado para não sobrecarregar o backend síncrono */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {ML_GRAFICOS.map((grafico) => (
-          <GraficoCard key={grafico.id} {...grafico} />
+        {ML_GRAFICOS.map((grafico, index) => (
+          <GraficoCard key={grafico.id} {...grafico} delay={index * 800} />
         ))}
       </div>
     </div>

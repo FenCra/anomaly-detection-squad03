@@ -14,8 +14,7 @@ export async function GET(
     const response = await fetch(`${ML_API_URL}/sql/${endpoint}`, {
       method: 'GET',
       headers: { 'Accept': 'image/png, application/json' },
-      // Cache de 5 minutos — os gráficos não mudam a cada requisição
-      next: { revalidate: 300 },
+      cache: 'no-store',
     })
 
     if (!response.ok) {
