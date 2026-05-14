@@ -9,9 +9,14 @@ import io
 from collections import Counter
 from models.Guassianasql import Gaussiana as GaussianaSQL
 from models.dados import Transacao
-from models.ZScoresql import ZScore as ZScoreSQL
+from models.GeoDistancia import GeoDistancia
+from models.GeoVelocidade import GeoVelocidade
+from models.GeoIP import GeoIP
+from models.ZScoresql import ZScoreSQL
 import pyodbc
 from fastapi import Query
+
+
 
 def get_connection():
     return pyodbc.connect(
@@ -41,12 +46,12 @@ def get_transacoes():
         "transacoes": dados
     }
 
-@router.get("/transactions/{id}")
-def get_transacao_id(id: int):
+@router.get("/transactions/{conta}")
+def get_transacao_id(conta: str):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM transacoes WHERE id = ?", (id,))
+    cursor.execute("SELECT * FROM transacoes WHERE conta = ?", (conta,))
     row = cursor.fetchone()
 
     conn.close()
@@ -171,7 +176,6 @@ def querry(
         query += " AND data <= ?"
         params.append(data_fim)
 
-    # 🔥 executa
     cursor.execute(query, params)
 
     colunas = [col[0] for col in cursor.description]
@@ -194,6 +198,17 @@ def gaussiana():
 
     return StreamingResponse(model.image, media_type="image/png")
 
+@router.get("/calculogaussiana/{conta}")
+def gaussiana(conta : str):
+    conn = get_connection()
+
+    model = GaussianaSQL(conn)
+
+    conn.close()
+
+    return StreamingResponse(model.image, media_type="image/png")
+
+
 @router.get("/calculozscore/")
 def zscore():
     conn = get_connection()
@@ -203,6 +218,21 @@ def zscore():
     conn.close()
 
     return StreamingResponse(model.image, media_type="image/png")
+
+
+@router.get("/calculozscore/{conta}")
+def zscore(conta: str):
+
+    conn = get_connection()
+
+    model = ZScoreSQL(conn, conta)
+
+    conn.close()
+
+    return StreamingResponse(
+        model.image,
+        media_type="image/png"
+    )
 
 
 @router.get("/cidadesmaisanomalas/")
@@ -264,6 +294,49 @@ def numerodefraudes():
     plt.close()
 
     return StreamingResponse(buf, media_type="image/png")
+
+@router.get("/geo/distancia/{conta}")
+def geo_distancia(conta: str):
+
+    conn = get_connection()
+
+    model = GeoDistancia(conn, conta)
+
+    conn.close()
+
+    return StreamingResponse(
+        model.image,
+        media_type="image/png"
+    )
+
+@router.get("/geo/velocidade/{conta}")
+def geo_velocidade(conta: str):
+
+    conn = get_connection()
+
+    model = GeoVelocidade(conn, conta)
+
+    conn.close()
+
+    return StreamingResponse(
+        model.image,
+        media_type="image/png"
+    )
+
+@router.get("/geo/ip/{conta}")
+def geo_ip(conta: str):
+
+    conn = get_connection()
+
+    model = GeoIP(conn, conta)
+
+    conn.close()
+
+    return StreamingResponse(
+        model.image,
+        media_type="image/png"
+    )
+
 
 @router.get("/fraudes/tipos/")
 def fraudes_tipos():
@@ -376,3 +449,5 @@ def maiores_tentativas():
     plt.close()
 
     return StreamingResponse(buf, media_type="image/png")
+
+#def posicaogeografica():
