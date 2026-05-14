@@ -8,19 +8,21 @@ from scipy.interpolate import make_interp_spline
 
 class ZScoreSQL:
 
-    def __init__(self, conn, conta):
+    def __init__(self, conn, conta=None):
 
         sns.set_theme(style="whitegrid")
 
-        # ==========================================
-        # BUSCA SOMENTE A CONTA INFORMADA
-        # ==========================================
-
-        query = f"""
-            SELECT *
-            FROM transacoes
-            WHERE conta = '{conta}'
-        """
+        if conta:
+            query = f"""
+                SELECT *
+                FROM transacoes
+                WHERE conta = '{conta}'
+            """
+        else:
+            query = """
+                SELECT *
+                FROM transacoes
+            """
 
         df = pd.read_sql(query, conn)
 

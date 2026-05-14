@@ -4,6 +4,8 @@ import shutil
 import ijson
 import json
 from fastapi.responses import StreamingResponse
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from collections import Counter
@@ -199,10 +201,10 @@ def gaussiana():
     return StreamingResponse(model.image, media_type="image/png")
 
 @router.get("/calculogaussiana/{conta}")
-def gaussiana(conta : str):
+def gaussiana_conta(conta : str):
     conn = get_connection()
 
-    model = GaussianaSQL(conn)
+    model = GaussianaSQL(conn, conta)
 
     conn.close()
 

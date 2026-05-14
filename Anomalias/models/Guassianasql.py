@@ -6,7 +6,7 @@ import io
 
 class Gaussiana:
 
-    def __init__(self, conn):
+    def __init__(self, conn, conta=None):
 
         import pandas as pd
         import numpy as np
@@ -15,7 +15,10 @@ class Gaussiana:
         import io
 
         cursor = conn.cursor()
-        cursor.execute("SELECT valor FROM transacoes")
+        if conta:
+            cursor.execute(f"SELECT valor FROM transacoes WHERE conta = '{conta}'")
+        else:
+            cursor.execute("SELECT valor FROM transacoes")
 
         valores = [row[0] for row in cursor.fetchall()]
 

@@ -4,6 +4,8 @@ import shutil
 import ijson
 import json
 from fastapi.responses import StreamingResponse
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 from collections import Counter

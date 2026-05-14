@@ -295,7 +295,7 @@ export default function TransactionsPage() {
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b border-gray-200">
           <p className="text-sm text-gray-600">
-            Mostrando <strong>{Math.min(pageSize, transactions.length)}</strong> de{' '}
+            Mostrando <strong>{currentPage * pageSize + transactions.length}</strong> de{' '}
             <strong>{total}</strong> transações
           </p>
         </div>
