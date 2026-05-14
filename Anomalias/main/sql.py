@@ -49,20 +49,20 @@ def get_transacoes():
     }
 
 @router.get("/transactions/{conta}")
-def get_transacao_id(conta: str):
+def get_transacoes_conta(conta: str):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM transacoes WHERE conta = ?", (conta,))
-    row = cursor.fetchone()
+    rows = cursor.fetchall()
+
+    if rows:
+        colunas = [col[0] for col in cursor.description]
+        conn.close()
+        return [dict(zip(colunas, row)) for row in rows]
 
     conn.close()
-
-    if row:
-        colunas = [col[0] for col in cursor.description]
-        return dict(zip(colunas, row))
-
-    return {"erro": "Transação não encontrada"}
+    return {"erro": "Nenhuma transação encontrada para esta conta"}
 
 @router.get("/contas/")
 def get_contas():

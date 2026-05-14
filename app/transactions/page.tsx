@@ -63,6 +63,21 @@ export default function TransactionsPage() {
   const [currentPage, setCurrentPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
+  const [contasDisponiveis, setContasDisponiveis] = useState<string[]>([])
+
+  // Busca lista de contas do backend de ML (criada pelo Vinicius)
+  useEffect(() => {
+    fetch('/api/ml/contas')
+      .then(res => res.json())
+      .then(data => {
+        if (data.contas && Array.isArray(data.contas)) {
+          // Usa Set para remover duplicatas caso o backend mande a mesma conta várias vezes
+          const contasUnicas = Array.from(new Set(data.contas)) as string[]
+          setContasDisponiveis(contasUnicas)
+        }
+      })
+      .catch(err => console.error("Falha ao buscar contas:", err))
+  }, [])
 
   // Recebe page e size explicitamente para evitar leitura de state React stale (async)
   const loadTransactions = async (activeFilters: Filters, page: number, size: number) => {
@@ -147,7 +162,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-full shadow-sm p-2 flex flex-wrap items-center gap-3">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex flex-wrap items-center gap-3">
         {/* Search Bar */}
         <div className="flex-1 min-w-[200px] relative px-4 flex items-center">
           <input
@@ -155,7 +170,7 @@ export default function TransactionsPage() {
             placeholder="Procure uma transação..."
             value={filters.search || ''}
             onChange={handleSearch}
-            className="w-full bg-transparent outline-none text-gray-700 text-sm font-medium placeholder-gray-500 py-2"
+            className="w-full bg-transparent outline-none text-gray-700 text-sm font-medium placeholder-gray-400 py-2"
           />
           <span className="text-gray-400 absolute right-4"><SearchIcon /></span>
         </div>
@@ -166,6 +181,18 @@ export default function TransactionsPage() {
         {/* Filter Selects & Pills */}
         <div className="flex flex-wrap items-center gap-2 pr-2">
           
+          <div className="relative">
+            <select
+              className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
+              value={filters.conta || 'all'}
+              onChange={(e) => handleFilterChange('conta', e.target.value)}
+            >
+              <option value="all">Todas as Contas</option>
+              {contasDisponiveis.map(c => <option key={c} value={c}>Conta {c}</option>)}
+            </select>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
+          </div>
+
           <div className="relative">
             <select
               className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
@@ -292,11 +319,12 @@ export default function TransactionsPage() {
       </div>
 
       {/* Resultados */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b border-gray-200">
-          <p className="text-sm text-gray-600">
+      <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/40 border border-gray-100 overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <h2 className="text-lg font-bold text-gray-900">Histórico de Transações</h2>
+          <p className="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
             Mostrando <strong>{currentPage * pageSize + transactions.length}</strong> de{' '}
-            <strong>{total}</strong> transações
+            <strong>{total}</strong>
           </p>
         </div>
 
@@ -308,7 +336,7 @@ export default function TransactionsPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-300 border-b border-gray-400">
+                <thead className="bg-gray-50/80 border-b border-gray-100">
                   <tr>
                     <th className="px-6 py-4 text-left font-bold text-gray-800 uppercase text-xs tracking-wider">Data/Hora</th>
                     <th className="px-6 py-4 text-left font-bold text-gray-800 uppercase text-xs tracking-wider">Comerciante</th>
@@ -318,11 +346,11 @@ export default function TransactionsPage() {
                     <th className="px-6 py-4 text-left font-bold text-gray-800 uppercase text-xs tracking-wider">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 bg-white border-x border-b border-gray-200">
+                <tbody className="divide-y divide-gray-50 bg-white">
                   {transactions.map((transaction) => {
                     const isFraude = transaction.is_fraude
-                    const statusClass = isFraude ? 'bg-red-500 text-white' : 'bg-green-400 text-white'
-                    const statusText = isFraude ? 'Negada' : 'Aprovada'
+                    const statusClass = isFraude ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200'
+                    const statusText = isFraude ? 'Negada / Fraude' : 'Aprovada'
                     
                     return (
                     <tr
@@ -331,21 +359,23 @@ export default function TransactionsPage() {
                         setSelectedTransaction(transaction)
                         setShowModal(true)
                       }}
-                      className="hover:bg-gray-100 cursor-pointer transition-colors"
+                      className="hover:bg-gray-50/80 cursor-pointer transition-colors group"
                     >
-                      <td className="px-6 py-4 text-gray-600">
-                        {new Date(transaction.data).toLocaleDateString('pt-BR')} {transaction.hora}
+                      <td className="px-6 py-4 text-gray-600 whitespace-nowrap">
+                        {new Date(transaction.data).toLocaleDateString('pt-BR')} <span className="text-gray-400 text-xs ml-1">{transaction.hora}</span>
                       </td>
-                      <td className="px-6 py-4 text-gray-900">
+                      <td className="px-6 py-4 text-gray-900 font-semibold group-hover:text-blue-600 transition-colors">
                         {transaction.estabelecimento}
                       </td>
-                      <td className="px-6 py-4 text-gray-700">{transaction.categoria}</td>
-                      <td className="px-6 py-4 text-gray-900 font-medium">
-                        R${transaction.valor.toFixed(2).replace('.', ',')}
+                      <td className="px-6 py-4">
+                        <span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md text-xs font-medium">{transaction.categoria}</span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-semibold">
+                        R$ {transaction.valor.toFixed(2).replace('.', ',')}
                       </td>
                       <td className="px-6 py-4 text-gray-600">{transaction.cidade}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-block w-28 text-center px-4 py-2 rounded-full text-xs font-bold shadow-sm ${statusClass}`}>
+                        <span className={`inline-flex items-center justify-center w-32 px-3 py-1.5 rounded-xl text-xs font-bold border ${statusClass}`}>
                           {statusText}
                         </span>
                       </td>
