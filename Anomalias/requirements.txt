@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+pyodbc
+pandas
+numpy
+matplotlib
+seaborn
+scipy
+ijson
