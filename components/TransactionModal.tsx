@@ -15,6 +15,7 @@ function MLChart({ title, endpoint, delay }: { title: string; endpoint: string; 
   const [src, setSrc] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -23,36 +24,117 @@ function MLChart({ title, endpoint, delay }: { title: string; endpoint: string; 
     return () => clearTimeout(timer)
   }, [endpoint, delay])
 
+  // Fechar lightbox com tecla Escape
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [lightboxOpen])
+
+  const imagemPronta = !carregando && !erro && src
+
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col bg-white">
-      <div className="p-3 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-700">
-        {title}
+    <>
+      <div className="border border-gray-200 rounded-xl overflow-hidden flex flex-col bg-white shadow-sm">
+        <div className="p-3 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-700 flex items-center justify-between">
+          <span>{title}</span>
+          {imagemPronta && (
+            <button
+              onClick={() => setLightboxOpen(true)}
+              title="Abrir em tela cheia"
+              className="text-gray-400 hover:text-purple-600 transition-colors"
+            >
+              {/* Ícone de expandir */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </button>
+          )}
+        </div>
+        <div
+          className={`p-4 flex items-center justify-center min-h-[200px] bg-white relative ${imagemPronta ? 'cursor-zoom-in group' : ''}`}
+          onClick={() => { if (imagemPronta) setLightboxOpen(true) }}
+        >
+          {carregando && !erro && (
+            <div className="flex flex-col items-center gap-2 text-gray-400">
+              <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              <span className="text-[10px]">Processando...</span>
+            </div>
+          )}
+          {erro ? (
+            <div className="text-center p-4">
+              <span className="text-orange-400 w-6 h-6 mx-auto block mb-2"><ShieldAlertIcon /></span>
+              <span className="text-xs text-gray-500">Erro ao carregar o gráfico.</span>
+            </div>
+          ) : src ? (
+            <div className="relative w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={title}
+                style={{ display: carregando ? 'none' : 'block' }}
+                className="w-full h-auto rounded"
+                onLoad={() => setCarregando(false)}
+                onError={() => { setErro(true); setCarregando(false) }}
+              />
+              {/* Overlay de hover com ícone de lupa */}
+              {imagemPronta && (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded transition-all flex items-center justify-center pointer-events-none">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-2 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0zm-2 0h-4m2-2v4" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
       </div>
-      <div className="p-4 flex items-center justify-center min-h-[200px] bg-white relative overflow-x-auto">
-        {carregando && !erro && (
-          <div className="flex flex-col items-center gap-2 text-gray-400">
-            <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-            <span className="text-[10px]">Processando...</span>
+
+      {/* Lightbox Overlay */}
+      {lightboxOpen && src && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-6"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <div
+            className="relative max-w-6xl w-full max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Barra superior do lightbox */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white font-bold text-base bg-black/40 px-4 py-2 rounded-full backdrop-blur-sm">
+                {title}
+              </span>
+              <button
+                onClick={() => setLightboxOpen(false)}
+                className="bg-white/10 hover:bg-white/25 text-white rounded-full p-2 transition-colors backdrop-blur-sm"
+                title="Fechar (Esc)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Imagem ampliada */}
+            <div className="overflow-auto rounded-xl bg-white shadow-2xl flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={title}
+                className="w-full h-auto rounded-xl"
+              />
+            </div>
+            <p className="text-white/50 text-xs text-center mt-3">Clique fora da imagem ou pressione <kbd className="bg-white/10 px-1.5 py-0.5 rounded font-mono">Esc</kbd> para fechar</p>
           </div>
-        )}
-        {erro ? (
-          <div className="text-center p-4">
-            <span className="text-orange-400 w-6 h-6 mx-auto block mb-2"><ShieldAlertIcon /></span>
-            <span className="text-xs text-gray-500">Erro ao carregar o gráfico.</span>
-          </div>
-        ) : src ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={src}
-            alt={title}
-            style={{ display: carregando ? 'none' : 'block' }}
-            className="w-full h-auto rounded"
-            onLoad={() => setCarregando(false)}
-            onError={() => { setErro(true); setCarregando(false) }}
-          />
-        ) : null}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }
 
