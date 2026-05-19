@@ -18,7 +18,6 @@ export default function RootLayout({
         {/* Header (Top Bar) */}
         <header className="h-16 bg-bb-blue flex items-center justify-between px-6 z-20 shrink-0">
           <div className="flex gap-6 text-white font-medium">
-            <span className="cursor-pointer hover:text-gray-200">Arquivo</span>
             <span className="cursor-pointer hover:text-gray-200">Ajuda</span>
           </div>
           <div className="text-bb-yellow font-bold text-2xl tracking-tighter italic">

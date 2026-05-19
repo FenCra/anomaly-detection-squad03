@@ -6,8 +6,57 @@ Um dashboard web moderno para visualizar, gerenciar e analisar detecção de fra
 
 - **Node.js** 16+ ou 18+
 - **npm** ou **yarn**
-- **Python** 3.8+ (para o Backend)
-- **API FastAPI** rodando em `http://localhost:8001`
+- **Python** 3.8+
+- **SQL Server Express** (gratuito) — veja o guia de instalação abaixo
+- **ODBC Driver 17 for SQL Server** — necessário para a conexão Python
+
+> [!IMPORTANT]
+> Este projeto foi desenvolvido **exclusivamente para SQL Server** (Microsoft). Tentar rodar com MySQL ou SQLite vai causar erros de incompatibilidade nas queries e nos tipos de dados. Não use MySQL Workbench para este projeto.
+
+## 🗄️ Configurando o Banco de Dados (SQL Server Express)
+
+Se você está rodando o projeto em uma máquina nova ou sem o SQL Server instalado, siga os passos abaixo. O SQL Server Express é **gratuito** e suficiente para o projeto.
+
+### Passo 1 — Instalar o SQL Server Express
+
+1. Acesse: **https://www.microsoft.com/pt-br/sql-server/sql-server-downloads**
+2. Baixe a versão **Express** (gratuita).
+3. Execute o instalador e escolha a opção **"Básico"** (instalação rápida e automática).
+4. Ao finalizar, anote o nome do servidor — por padrão será: `.\SQLEXPRESS`
+
+### Passo 2 — Instalar o SQL Server Management Studio (SSMS)
+
+O SSMS é a interface gráfica para gerenciar o banco (equivalente ao MySQL Workbench, mas para SQL Server).
+
+1. Acesse: **https://aka.ms/ssmsfullsetup**
+2. Baixe e instale o SSMS normalmente.
+
+### Passo 3 — Instalar o Driver ODBC
+
+O backend Python usa `pyodbc` para se conectar ao SQL Server. O driver ODBC é o "tradutor" entre os dois.
+
+1. Acesse: **https://learn.microsoft.com/pt-br/sql/connect/odbc/download-odbc-driver-for-sql-server**
+2. Baixe e instale o **ODBC Driver 17 for SQL Server**.
+
+### Passo 4 — Criar o banco e a tabela
+
+1. Abra o **SSMS** e conecte-se ao servidor `.\SQLEXPRESS` usando **Autenticação do Windows**.
+2. Abra o arquivo `Anomalias/script.sql` no SSMS.
+3. Execute o script inteiro (`F5` ou botão "Executar"). Isso criará o banco `banco` e a tabela `transacoes`.
+
+### Passo 5 — Popular o banco com os dados
+
+Com o banco criado, rode o script automatizado que insere os ~30 mil registros:
+
+```bash
+cd Anomalias/insertautomatizado
+python main.py
+```
+
+Aguarde a mensagem `✅ Inserção concluída!`. Isso pode levar alguns minutos dependendo da máquina.
+
+> [!NOTE]
+> O script lê o arquivo `transacoes_treino.json` (já incluso no repositório) e insere todos os registros automaticamente via `pyodbc`. Nenhuma configuração extra é necessária se os passos anteriores foram seguidos.
 
 ## Instalação
 
@@ -36,7 +85,7 @@ Navegue até a pasta `Anomalias` e execute:
 cd Anomalias
 pip install -r requirements.txt
 ```
-*(Nota: Certifique-se de ter o driver ODBC do SQL Server instalado em sua máquina para que a conexão via `pyodbc` funcione corretamente).*
+*(Nota: Certifique-se de ter o driver ODBC do SQL Server instalado em sua máquina para que a conexão via `pyodbc` funcione corretamente — veja o guia acima).*
 
 ## Como Executar
 

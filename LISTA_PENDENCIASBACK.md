@@ -1,10 +1,6 @@
 ### 🔴 Prioridade Alta
 
-#### 1. Bug: Rota de Consulta por ID quebrando ao abrir o Modal de Anomalias
-* **O que precisamos corrigir:** Na rota `GET /sql/transactions/{id}` (arquivo `sql.py`), a conexão com o banco (`conn.close()`) está sendo fechada **antes** de a função tentar ler as colunas do resultado (`cursor.description`). Quando a gente clica em uma anomalia na tela de Transações para abrir o modal de detalhes, o Python vai tentar acessar um cursor de uma conexão já encerrada e vai quebrar com erro.
-* **Motivo:** Isso impede a abertura do modal de detalhes na página de Anomalias. A correção é simples: mover o `conn.close()` para **depois** de montar o dicionário de retorno, ou usar um bloco `finally`.
-
-#### 2. Rota para Atualizar o Status (Julgamento)
+#### 1. Rota para Atualizar o Status (Julgamento)
 * **O que precisamos fazer:** Criar uma rota de `PATCH` ou `PUT` no caminho `/sql/transactions/{id}`.
 * **Motivo:** O nosso painel já tem os botões de "Confirmar Fraude" e "Aprovar Transação", mas a API hoje só faz leitura e inserção (`GET` e `POST`). A gente precisa dessa rota para que, quando apertarmos o botão na tela, a API receba o comando (ex: `is_fraude: 1`) e atualize isso de verdade lá no SQL Server. Por enquanto o front só finge que mudou os status na tela.
 
