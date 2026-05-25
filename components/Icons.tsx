@@ -151,3 +151,18 @@ export const FlaskIcon = () => (
     <line x1="6" y1="16" x2="18" y2="16" />
   </svg>
 )
+
+export const HelpCircleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+)
+
+export const BookOpenIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+)

@@ -68,7 +68,6 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
   const onSubmit = async (data: CreateTransactionFormData) => {
     try {
       setError(null)
-      // Injeta default values para campos exigidos pelo back-end que não estão no formulário frontend
       const payload = {
         ...data,
         dia_semana: new Date(data.data).toLocaleDateString('pt-BR', { weekday: 'long' }),

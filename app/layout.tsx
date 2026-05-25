@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Sidebar from '@/components/Sidebar'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Dashboard - Caça às Anomalias',
@@ -16,9 +17,9 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className="flex flex-col h-screen bg-bb-bg overflow-hidden font-sans">
         {/* Header (Top Bar) */}
-        <header className="h-16 bg-bb-blue flex items-center justify-between px-6 z-20 shrink-0">
+        <header className="h-16 bg-bb-blue flex items-center justify-between px-6 z-20 shrink-0 shadow-md">
           <div className="flex gap-6 text-white font-medium">
-            <span className="cursor-pointer hover:text-gray-200">Ajuda</span>
+            <Link href="/ajuda" className="cursor-pointer hover:text-blue-200 transition-colors">Ajuda</Link>
           </div>
           <div className="text-bb-yellow font-bold text-2xl tracking-tighter italic">
             BB

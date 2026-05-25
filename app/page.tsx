@@ -67,12 +67,9 @@ export default function Dashboard() {
     return null
   }
 
-  // Helpers de variação percentual
   const formatVar = (perc: number, inverseIndicator: boolean = false) => {
     const isPositive = perc >= 0
     let color = isPositive ? 'text-green-600' : 'text-red-600'
-    
-    // Se for invertido (como anomalias onde redução é algo bom):
     if (inverseIndicator) color = isPositive ? 'text-red-600' : 'text-green-600'
 
     return {
@@ -116,13 +113,13 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Gráficos Solicitados - Linha 1 (Grid de 3) */}
+      {/* Gráficos - Linha 1 (Grid de 3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ChartCard 
           title="Distribuição de Transações" 
           data={data.distribuicao_transacoes} 
           type="pie" 
-          colors={['#10b981', '#ef4444']} // Verde e Vermelho
+          colors={['#10b981', '#ef4444']} 
         />
         <ChartCard 
           title="Volume de Transações" 
@@ -138,30 +135,30 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Gráficos Solicitados - Linha 2 (Linha Horizontal Completa) */}
+      {/* Gráficos - Linha 2 (Linha Horizontal Completa)*/}
       <div className="w-full">
         <ChartCard 
           title="Resultado das Anomalias" 
           data={data.resultado_anomalias} 
           type="horizontalBar" 
-          colors={['#eab308', '#ef4444']} // Amarelo (Aprovada), Vermelho (Bloqueada)
-          heightClass="h-32" // Reduz significativamente a barra já que o protótipo exige um formato deitada mais fino
+          colors={['#eab308', '#ef4444']} 
+          heightClass="h-32" 
         />
       </div>
 
-      {/* Gráficos Solicitados - Linha 3 (Grid de 2 agora que o Score de Risco foi omitido) */}
+      {/* Gráficos - Linha 3 (Grid de 2)*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ChartCard 
           title="Transações por Hora" 
           data={data.transacoes_hora} 
           type="line" 
-          colors={['#10b981']} // Linha Verde
+          colors={['#10b981']} 
         />
         <ChartCard 
           title="Top Usuários com Anomalias" 
           data={data.top_usuarios} 
           type="bar" 
-          colors={['#ef4444']} // Colunas Vermelhas
+          colors={['#ef4444']} 
         />
       </div>
     </div>

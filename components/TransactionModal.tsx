@@ -24,7 +24,6 @@ function MLChart({ title, endpoint, delay }: { title: string; endpoint: string; 
     return () => clearTimeout(timer)
   }, [endpoint, delay])
 
-  // Fechar lightbox com tecla Escape
   useEffect(() => {
     if (!lightboxOpen) return
     const handleKey = (e: KeyboardEvent) => {
@@ -71,7 +70,6 @@ function MLChart({ title, endpoint, delay }: { title: string; endpoint: string; 
             </div>
           ) : src ? (
             <div className="relative w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
                 alt={title}
@@ -123,7 +121,6 @@ function MLChart({ title, endpoint, delay }: { title: string; endpoint: string; 
 
             {/* Imagem ampliada */}
             <div className="overflow-auto rounded-xl bg-white shadow-2xl flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
                 alt={title}
@@ -145,8 +142,6 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
   const [activeTab, setActiveTab] = useState<'detalhes' | 'analise'>('detalhes')
 
   if (!transaction) return null
-
-  // Status baseado somente em is_fraude (fonte da verdade: backend)
   const statusStr = transaction.is_fraude ? 'Negada / Anomalia' : 'Aprovada'
   const statusTheme = transaction.is_fraude
     ? 'bg-red-50 text-red-700 border-red-200'
