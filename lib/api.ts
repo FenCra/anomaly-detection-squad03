@@ -94,9 +94,8 @@ export async function createTransaction(data: Partial<Transaction>) {
 }
 
 export async function patchTransaction(id: number, payload: Partial<Pick<Transaction, 'is_fraude'>>): Promise<Transaction> {
-  // Mock temporário para simular alteração de status (Rota PATCH ausente)
-  console.warn(`[MOCK PATCH] Ação interceptada. id: ${id}, fraude: ${payload.is_fraude}`)
-  return { id, ...payload } as any
+  const response = await api.patch<Transaction>(`/transactions/${id}`, payload)
+  return response.data
 }
 
 export interface Anomaly extends Transaction {

@@ -142,10 +142,6 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
   const [activeTab, setActiveTab] = useState<'detalhes' | 'analise'>('detalhes')
 
   if (!transaction) return null
-  const statusStr = transaction.is_fraude ? 'Negada / Anomalia' : 'Aprovada'
-  const statusTheme = transaction.is_fraude
-    ? 'bg-red-50 text-red-700 border-red-200'
-    : 'bg-green-50 text-green-700 border-green-200'
 
   const dataHoraStr = `${new Date(transaction.data).toLocaleDateString('pt-BR')} às ${transaction.hora || '00:00'}`
 
@@ -165,6 +161,37 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
       setSalvando(false)
     }
   }
+
+  // Status dinâmico: julgado pelo analista SEMPRE sobrepõe o motor ML
+  const statusDinamico = (() => {
+    if (julgado === 'fraude') {
+      return {
+        label: 'Fraude Confirmada pelo Analista',
+        descricao: '⚖️ Fraude confirmada manualmente pelo Analista. O registro foi atualizado no banco de dados.',
+        theme: 'bg-red-100 text-red-900 border-red-400',
+      }
+    }
+    if (julgado === 'legitima') {
+      return {
+        label: 'Aprovada pelo Analista',
+        descricao: '✅ Transação revisada e aprovada como legítima pelo Analista. O registro foi atualizado no banco de dados.',
+        theme: 'bg-green-100 text-green-900 border-green-400',
+      }
+    }
+    // Sem julgamento do analista: usa o resultado do motor ML
+    if (transaction.is_fraude) {
+      return {
+        label: 'Negada / Anomalia Detectada',
+        descricao: '🤖 Transação bloqueada automaticamente pelo motor estatístico.',
+        theme: 'bg-red-50 text-red-700 border-red-200',
+      }
+    }
+    return {
+      label: 'Aprovada',
+      descricao: '🤖 Transação aprovada pelo motor estatístico.',
+      theme: 'bg-green-50 text-green-700 border-green-200',
+    }
+  })()
 
   const mlCharts = [
     { title: 'Análise Z-Score da Conta', endpoint: `/api/ml/calculozscore/${transaction.conta}` },
@@ -224,28 +251,16 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
           
           {activeTab === 'detalhes' && (
             <div className="space-y-6">
-              {/* 1. Badge de Status */}
-              <div className={`rounded-xl p-4 flex gap-3 items-center border shadow-sm ${statusTheme}`}>
+              {/* 1. Badge de Status — atualiza ao vivo conforme o veredito do analista */}
+              <div className={`rounded-xl p-4 flex gap-3 items-center border shadow-sm transition-all duration-500 ${statusDinamico.theme}`}>
                 <span className="w-6 h-6 shrink-0"><AlertCircleIcon /></span>
                 <div>
-                  <p className="font-bold text-lg">Status: {statusStr}</p>
-                  {transaction.is_fraude && (
-                    <p className="text-sm mt-0.5 opacity-90 font-medium">Transação bloqueada automaticamente pelo motor estatístico.</p>
+                  <p className="font-bold text-lg">Status: {statusDinamico.label}</p>
+                  {statusDinamico.descricao && (
+                    <p className="text-sm mt-0.5 opacity-90 font-medium">{statusDinamico.descricao}</p>
                   )}
                 </div>
               </div>
-
-              {/* Alerta de Julgamento */}
-              {julgado && (
-                <div className={`rounded-xl p-4 border shadow-sm flex items-center gap-3 ${julgado === 'fraude' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-green-50 border-green-200 text-green-800'}`}>
-                  <span className="w-6 h-6"><CheckCircleIcon /></span>
-                  <p className="font-bold">
-                    {julgado === 'fraude'
-                      ? 'Veredito: Fraude confirmada.'
-                      : 'Veredito: Transação aprovada como legítima.'}
-                  </p>
-                </div>
-              )}
 
               {erro && (
                 <div className="rounded-xl p-4 border border-orange-200 bg-orange-50 text-orange-800 flex items-center gap-3 shadow-sm">
@@ -336,27 +351,25 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
             Sair
           </button>
 
-          {!julgado && (
-            <div className="flex gap-4">
-              <button
-                disabled={salvando}
-                onClick={() => handleJulgar(false)}
-                className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                <span className="w-5 h-5"><CheckCircleIcon /></span>
-                {salvando ? 'Processando...' : 'Aprovar Operação'}
-              </button>
+          <div className="flex gap-4">
+            <button
+              disabled={salvando || julgado === 'legitima'}
+              onClick={() => handleJulgar(false)}
+              className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <span className="w-5 h-5"><CheckCircleIcon /></span>
+              {salvando && julgado !== 'fraude' ? 'Processando...' : julgado === 'legitima' ? 'Já Aprovada' : 'Aprovar Operação'}
+            </button>
 
-              <button
-                disabled={salvando}
-                onClick={() => handleJulgar(true)}
-                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
-              >
-                <span className="w-5 h-5"><ShieldAlertIcon /></span>
-                {salvando ? 'Processando...' : 'Confirmar Fraude'}
-              </button>
-            </div>
-          )}
+            <button
+              disabled={salvando || julgado === 'fraude'}
+              onClick={() => handleJulgar(true)}
+              className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <span className="w-5 h-5"><ShieldAlertIcon /></span>
+              {salvando && julgado !== 'legitima' ? 'Processando...' : julgado === 'fraude' ? 'Fraude Confirmada' : 'Confirmar Fraude'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,16 +1,18 @@
 ### 🔴 Prioridade Alta
 
-#### 1. Rota para Atualizar o Status (Julgamento)
-* **O que precisamos fazer:** Criar uma rota de `PATCH` ou `PUT` no caminho `/sql/transactions/{id}`.
-* **Motivo:** O nosso painel já tem os botões de "Confirmar Fraude" e "Aprovar Transação", mas a API hoje só faz leitura e inserção (`GET` e `POST`). A gente precisa dessa rota para que, quando apertarmos o botão na tela, a API receba o comando (ex: `is_fraude: 1`) e atualize isso de verdade lá no SQL Server. Por enquanto o front só finge que mudou os status na tela.
+#### ~~1. Rota para Atualizar o Status (Julgamento)~~ ✅ [CONCLUÍDA]
+* **O que precisava ser feito:** Criar uma rota de `PATCH` ou `PUT` no caminho `/sql/transactions/{id}`.
+* **Status:** Resolvido! A rota `@router.put("/transactions/{id}/fraude")` foi criada no `sql.py` usando `UPDATE transacoes SET is_fraude = ?`.
 
 ---
 
 ### 🟡 Prioridades Médias
 
-#### 2. Paginação no Banco e Filtro de Fraude
-* **O que precisamos fazer:** Adicionar os parâmetros `skip`, `limit` e `is_fraude` na nossa rota principal `GET /sql/querry/`.
-* **Motivo:** Hoje a API devolve o banco inteiro (as 30 mil linhas) de uma vez só. Se o banco crescer, isso vai travar o navegador. Como não tem paginação pronta no back, o Front está tendo que baixar tudo e dividir as páginas sozinho. Também falta o filtro de fraude pra gente conseguir pedir pro banco trazer só as anomalias quando precisarmos, sem ter que baixar as normais junto.
+#### 2. Otimização de Carga (Paginação + Rota Exclusiva de Cidades)
+* **O que precisamos fazer:** 
+  1. Adicionar os parâmetros `skip`, `limit` e `is_fraude` na rota principal `GET /sql/querry/`.
+  2. Criar uma nova rota `GET /sql/cidades/` para executar `SELECT DISTINCT cidade FROM transacoes`.
+* **Motivo:** Essas duas tarefas devem ser feitas juntas. Hoje, a API devolve o banco inteiro de uma vez só (30 mil linhas), o que pesa no navegador. Se o backend criar apenas a paginação (limit), a tabela do front-end ficará rápida, mas o filtro dinâmico de cidades do front-end vai "quebrar" (pois ele deixará de receber as 30 mil linhas para extrair todos os nomes das cidades). Logo, para poder paginar a tabela principal, precisamos obrigatoriamente de uma pequena rota separada apenas para alimentar o dropdown com as cidades únicas.
 
 #### 3. Rota Própria para os Gráficos do Dashboard
 * **O que precisamos fazer:** Criar uma rota agrupada (ex: `GET /sql/dashboard/metrics`) que devolva só as somas e totais (Total Movimentado, Quantidade de Anomalias, etc).
@@ -23,3 +25,5 @@
 #### 4. Barra de Pesquisa de Texto Livre
 * **O que precisamos fazer:** Adicionar um parâmetro `search` de busca geral na rota `GET /sql/querry/`.
 * **Motivo:** Nossa tela tem uma barra de pesquisa pro usuário digitar qualquer coisa e achar a transação. Como a API não processa esse tipo de busca ainda, o Front está quebrando um galho e pesquisando dentro da própria memória do navegador. Seria legal o Back aceitar a palavra e fazer a pesquisa direto nas colunas do banco (conta, cidade, etc).
+
+

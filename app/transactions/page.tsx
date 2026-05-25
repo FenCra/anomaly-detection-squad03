@@ -18,20 +18,6 @@ const CATEGORIES = [
   'Investimento',
 ]
 
-const CITIES = [
-  'Sao Paulo',
-  'Rio de Janeiro',
-  'Belo Horizonte',
-  'Curitiba',
-  'Salvador',
-  'Brasilia',
-  'Manaus',
-  'Recife',
-  'Porto Alegre',
-  'Fortaleza',
-  'Campinas',
-]
-
 const TRANSACTION_TYPES = ['debito', 'credito', 'transferencia']
 const DEVICES = ['celular', 'web', 'caixa', 'smartwatch']
 
@@ -64,19 +50,30 @@ export default function TransactionsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
   const [contasDisponiveis, setContasDisponiveis] = useState<string[]>([])
+  const [cidadesDisponiveis, setCidadesDisponiveis] = useState<string[]>([])
 
-  // Busca lista de contas do backend de ML (criada pelo Vinicius)
+  // Busca lista de contas e cidades dinamicamente do backend
   useEffect(() => {
+    // Buscar contas
     fetch('/api/ml/contas')
       .then(res => res.json())
       .then(data => {
         if (data.contas && Array.isArray(data.contas)) {
-          // Usa Set para remover duplicatas caso o backend mande a mesma conta várias vezes
           const contasUnicas = Array.from(new Set(data.contas)) as string[]
           setContasDisponiveis(contasUnicas)
         }
       })
       .catch(err => console.error("Falha ao buscar contas:", err))
+
+    // Buscar cidades via front-end lendo a massa de transações (limit alto para englobar histórico)
+    fetchTransactions({ limit: 30000 })
+      .then(res => {
+        if (res.items && Array.isArray(res.items)) {
+          const cidadesUnicas = Array.from(new Set(res.items.map(t => t.cidade).filter(Boolean))) as string[]
+          setCidadesDisponiveis(cidadesUnicas.sort())
+        }
+      })
+      .catch(err => console.error("Falha ao buscar cidades dinamicamente:", err))
   }, [])
 
   // Recebe page e size explicitamente para evitar leitura de state React stale (async)
@@ -227,7 +224,7 @@ export default function TransactionsPage() {
               onChange={(e) => handleFilterChange('cidade', e.target.value)}
             >
               <option value="all">Localização</option>
-              {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {cidadesDisponiveis.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
           </div>

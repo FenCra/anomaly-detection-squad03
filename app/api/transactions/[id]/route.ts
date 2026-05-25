@@ -36,10 +36,13 @@ export async function PATCH(
     const id = params.id
     const body = await request.json()
 
-    const response = await fetch(`${API_URL}/sql/transactions/${id}`, {
-      method: 'PATCH',
+    // O FastAPI (backend) espera um PUT na rota /fraude e o is_fraude como query parameter
+    const isFraudeQuery = body.is_fraude ? 'true' : 'false'
+    const url = `${API_URL}/sql/transactions/${id}/fraude?is_fraude=${isFraudeQuery}`
+
+    const response = await fetch(url, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
     })
 
     if (!response.ok) throw new Error(`API error: ${response.status}`)

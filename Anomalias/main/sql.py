@@ -126,6 +126,96 @@ def inserir_transacao(transacao: Transacao):
 
     return {"msg": "Transação inserida com sucesso"}
 
+# =========================================================
+# UPDATE STATUS FRAUDE
+# =========================================================
+
+@router.put("/transactions/{id}/fraude")
+def update_status_fraude(
+    id: int,
+    is_fraude: bool
+):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute(
+            """
+            UPDATE transacoes
+            SET is_fraude = ?
+            WHERE id = ?
+            """,
+            (
+                int(is_fraude),
+                id
+            )
+        )
+
+        conn.commit()
+
+        return {
+            "mensagem":
+            "Status de fraude atualizado com sucesso"
+        }
+
+    except Exception as e:
+
+        conn.rollback()
+
+        return {
+            "erro": str(e)
+        }
+
+    finally:
+
+        conn.close()
+
+
+# =========================================================
+# DELETE TRANSAÇÃO
+# =========================================================
+
+@router.delete("/transactions/{id}")
+def delete_transacao(
+    id: int
+):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute(
+            """
+            DELETE FROM transacoes
+            WHERE id = ?
+            """,
+            (id,)
+        )
+
+        conn.commit()
+
+        return {
+            "mensagem":
+            "Transação deletada com sucesso"
+        }
+
+    except Exception as e:
+
+        conn.rollback()
+
+        return {
+            "erro": str(e)
+        }
+
+    finally:
+
+        conn.close()
+
 
 @router.get("/querry/")
 def querry(
