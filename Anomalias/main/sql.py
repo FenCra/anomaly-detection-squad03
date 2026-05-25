@@ -219,6 +219,7 @@ def delete_transacao(
 
 @router.get("/querry/")
 def querry(
+    conta: str = Query(None),
     categoria: str = Query(None),
     cidade: str = Query(None),
     valor_min: float = Query(None),
@@ -236,6 +237,10 @@ def querry(
     params = []
 
     # 🔥 filtros dinâmicos
+    if conta:
+        query += " AND conta = ?"
+        params.append(conta)
+
     if categoria:
         query += " AND categoria = ?"
         params.append(categoria)
