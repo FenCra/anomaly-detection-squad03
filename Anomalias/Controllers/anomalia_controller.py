@@ -60,17 +60,6 @@ def listar_contas():
 
     return transacao_service.listar_contas()
 
-#errado
-@router.get("/transacoes/{conta}")
-def buscar_transacao_por_conta(
-    conta: str
-):
-
-    return transacao_service.buscar_transacao_por_conta(
-        conta
-    )
-
-
 @router.post("/transacoes")
 def criar_transacao(
     transacao: Transacao
@@ -174,6 +163,15 @@ def buscar_transacoes(
         data_fim=data_fim
     )
 
+# Rota dinâmica movida para baixo das estáticas para evitar conflito de rotas
+@router.get("/transacoes/{conta}")
+def buscar_transacao_por_conta(
+    conta: str
+):
+
+    return transacao_service.buscar_transacao_por_conta(
+        conta
+    )
 #errado
 
 @router.get("/zscore/{conta}")
