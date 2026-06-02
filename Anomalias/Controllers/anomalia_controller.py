@@ -195,11 +195,6 @@ def gaussiana(
         .gaussiana_por_conta(conta)
     )
 
-
-
-    
-
-
 @router.get("/distancia/{conta}")
 def geo_distancia(
     conta: str

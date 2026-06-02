@@ -149,448 +149,448 @@ class TransacaoRepository:
             conn.close()
 
     # =========================================================
-# UPDATE STATUS FRAUDE
-# =========================================================
+    # UPDATE STATUS FRAUDE
+    # =========================================================
 
-def update_status_fraude(
-    self,
-    id: int,
-    is_fraude: bool
-):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    try:
-
-        cursor.execute(
-            """
-            UPDATE transacoes
-            SET is_fraude = ?
-            WHERE id = ?
-            """,
-            (
-                int(is_fraude),
-                id
-            )
-        )
-
-        conn.commit()
-
-        return {
-            "mensagem":
-            "Status de fraude atualizado com sucesso"
-        }
-
-    except Exception as e:
-
-        conn.rollback()
-
-        return {
-            "erro": str(e)
-        }
-
-    finally:
-
-        conn.close()
-
-
-def delete_transacao(
-    self,
-    id: int
-):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    try:
-
-        cursor.execute(
-            """
-            DELETE FROM transacoes
-            WHERE id = ?
-            """,
-            (id,)
-        )
-
-        conn.commit()
-
-        return {
-            "mensagem":
-            "Transação deletada com sucesso"
-        }
-
-    except Exception as e:
-
-        conn.rollback()
-
-        return {
-            "erro": str(e)
-        }
-
-    finally:
-
-        conn.close()
-
-
-def get_cidades(self):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT DISTINCT cidade
-        FROM transacoes
-        WHERE cidade IS NOT NULL
-        ORDER BY cidade
-        """
-    )
-
-    cidades = [
-        row[0]
-        for row in cursor.fetchall()
-    ]
-
-    conn.close()
-
-    return {
-        "total": len(cidades),
-        "cidades": cidades
-    }
-    
-def dashboard_metrics(self):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT
-            COUNT(*) as total_transacoes,
-            SUM(valor) as total_movimentado,
-            SUM(
-                CASE
-                    WHEN is_fraude = 1
-                    THEN 1
-                    ELSE 0
-                END
-            ) as total_fraudes
-        FROM transacoes
-    """)
-
-    row = cursor.fetchone()
-
-    conn.close()
-
-    return {
-        "total_transacoes": row[0],
-        "total_movimentado": float(row[1] or 0),
-        "total_fraudes": row[2]
-    }
-
-
-def query_transacoes(
+    def update_status_fraude(
         self,
-        categoria=None,
-        cidade=None,
-        valor_min=None,
-        valor_max=None,
-        tipo_transacao=None,
-        dispositivo=None,
-        data_inicio=None,
-        data_fim=None
+        id: int,
+        is_fraude: bool
     ):
 
         conn = get_connection()
+
         cursor = conn.cursor()
 
-        query = "SELECT * FROM transacoes WHERE 1=1"
+        try:
 
-        params = []
+            cursor.execute(
+                """
+                UPDATE transacoes
+                SET is_fraude = ?
+                WHERE id = ?
+                """,
+                (
+                    int(is_fraude),
+                    id
+                )
+            )
 
-        if categoria:
-            query += " AND categoria = ?"
-            params.append(categoria)
+            conn.commit()
 
-        if cidade:
-            query += " AND cidade = ?"
-            params.append(cidade)
+            return {
+                "mensagem":
+                "Status de fraude atualizado com sucesso"
+            }
 
-        if valor_min is not None:
-            query += " AND valor >= ?"
-            params.append(valor_min)
+        except Exception as e:
 
-        if valor_max is not None:
-            query += " AND valor <= ?"
-            params.append(valor_max)
+            conn.rollback()
 
-        if tipo_transacao:
-            query += " AND tipo_transacao = ?"
-            params.append(tipo_transacao)
+            return {
+                "erro": str(e)
+            }
 
-        if dispositivo:
-            query += " AND dispositivo = ?"
-            params.append(dispositivo)
+        finally:
 
-        if data_inicio:
-            query += " AND data >= ?"
-            params.append(data_inicio)
+            conn.close()
 
-        if data_fim:
-            query += " AND data <= ?"
-            params.append(data_fim)
 
-        cursor.execute(query, params)
+    def delete_transacao(
+        self,
+        id: int
+    ):
 
-        colunas = [col[0] for col in cursor.description]
+        conn = get_connection()
 
-        dados = [
-            dict(zip(colunas, row))
+        cursor = conn.cursor()
+
+        try:
+
+            cursor.execute(
+                """
+                DELETE FROM transacoes
+                WHERE id = ?
+                """,
+                (id,)
+            )
+
+            conn.commit()
+
+            return {
+                "mensagem":
+                "Transação deletada com sucesso"
+            }
+
+        except Exception as e:
+
+            conn.rollback()
+
+            return {
+                "erro": str(e)
+            }
+
+        finally:
+
+            conn.close()
+
+
+    def get_cidades(self):
+
+        conn = get_connection()
+
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT DISTINCT cidade
+            FROM transacoes
+            WHERE cidade IS NOT NULL
+            ORDER BY cidade
+            """
+        )
+
+        cidades = [
+            row[0]
             for row in cursor.fetchall()
         ]
 
         conn.close()
 
         return {
-            "total": len(dados),
-            "dados": dados
+            "total": len(cidades),
+            "cidades": cidades
         }
+    
+    def dashboard_metrics(self):
+
+        conn = get_connection()
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) as total_transacoes,
+                SUM(valor) as total_movimentado,
+                SUM(
+                    CASE
+                        WHEN is_fraude = 1
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as total_fraudes
+            FROM transacoes
+        """)
+
+        row = cursor.fetchone()
+
+        conn.close()
+
+        return {
+            "total_transacoes": row[0],
+            "total_movimentado": float(row[1] or 0),
+            "total_fraudes": row[2]
+        }
+
+
+    def query_transacoes(
+            self,
+            categoria=None,
+            cidade=None,
+            valor_min=None,
+            valor_max=None,
+            tipo_transacao=None,
+            dispositivo=None,
+            data_inicio=None,
+            data_fim=None
+        ):
+
+            conn = get_connection()
+            cursor = conn.cursor()
+
+            query = "SELECT * FROM transacoes WHERE 1=1"
+
+            params = []
+
+            if categoria:
+                query += " AND categoria = ?"
+                params.append(categoria)
+
+            if cidade:
+                query += " AND cidade = ?"
+                params.append(cidade)
+
+            if valor_min is not None:
+                query += " AND valor >= ?"
+                params.append(valor_min)
+
+            if valor_max is not None:
+                query += " AND valor <= ?"
+                params.append(valor_max)
+
+            if tipo_transacao:
+                query += " AND tipo_transacao = ?"
+                params.append(tipo_transacao)
+
+            if dispositivo:
+                query += " AND dispositivo = ?"
+                params.append(dispositivo)
+
+            if data_inicio:
+                query += " AND data >= ?"
+                params.append(data_inicio)
+
+            if data_fim:
+                query += " AND data <= ?"
+                params.append(data_fim)
+
+            cursor.execute(query, params)
+
+            colunas = [col[0] for col in cursor.description]
+
+            dados = [
+                dict(zip(colunas, row))
+                for row in cursor.fetchall()
+            ]
+
+            conn.close()
+
+            return {
+                "total": len(dados),
+                "dados": dados
+            }
     
 
 
-def buscar_valores_por_conta(
-        self,
-        conta: str
-    ):
+    def buscar_valores_por_conta(
+            self,
+            conta: str
+        ):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        query = """
-            SELECT
-                valor,
-                data,
-                hora
-            FROM transacoes
-            WHERE conta = ?
-            ORDER BY data, hora
-        """
+            query = """
+                SELECT
+                    valor,
+                    data,
+                    hora
+                FROM transacoes
+                WHERE conta = ?
+                ORDER BY data, hora
+            """
 
-        df = pd.read_sql(
-            query,
-            conn,
-            params=[conta]
-        )
+            df = pd.read_sql(
+                query,
+                conn,
+                params=[conta]
+            )
 
-        conn.close()
+            conn.close()
 
-        return df
+            return df
 
 
 
-def buscar_localizacao_por_conta(
-        self,
-        conta: str
-    ):
+    def buscar_localizacao_por_conta(
+            self,
+            conta: str
+        ):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        query = """
-            SELECT
-                latitude,
-                longitude
-            FROM transacoes
-            WHERE conta = ?
-        """
+            query = """
+                SELECT
+                    latitude,
+                    longitude
+                FROM transacoes
+                WHERE conta = ?
+            """
 
-        df = pd.read_sql(
-            query,
-            conn,
-            params=[conta]
-        )
+            df = pd.read_sql(
+                query,
+                conn,
+                params=[conta]
+            )
 
-        conn.close()
+            conn.close()
 
-        return df
+            return df
 
 
 
-    # =====================================================
-    # GEO IP
-    # =====================================================
+        # =====================================================
+        # GEO IP
+        # =====================================================
 
-def buscar_ips_por_conta(
-        self,
-        conta: str
-    ):
+    def buscar_ips_por_conta(
+            self,
+            conta: str
+        ):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        query = """
-            SELECT ip_origem
-            FROM transacoes
-            WHERE conta = ?
-        """
+            query = """
+                SELECT ip_origem
+                FROM transacoes
+                WHERE conta = ?
+            """
 
-        df = pd.read_sql(
-            query,
-            conn,
-            params=[conta]
-        )
+            df = pd.read_sql(
+                query,
+                conn,
+                params=[conta]
+            )
 
-        conn.close()
+            conn.close()
 
-        return df
+            return df
 
-    # =====================================================
-    # GEO VELOCIDADE
-    # =====================================================
+        # =====================================================
+        # GEO VELOCIDADE
+        # =====================================================
 
-def buscar_velocidade_geografica(
-        self,
-        conta: str
-    ):
+    def buscar_velocidade_geografica(
+            self,
+            conta: str
+        ):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        query = """
-            SELECT
-                data,
-                hora,
-                latitude,
-                longitude
-            FROM transacoes
-            WHERE conta = ?
-            ORDER BY data, hora
-        """
+            query = """
+                SELECT
+                    data,
+                    hora,
+                    latitude,
+                    longitude
+                FROM transacoes
+                WHERE conta = ?
+                ORDER BY data, hora
+            """
 
-        df = pd.read_sql(
-            query,
-            conn,
-            params=[conta]
-        )
+            df = pd.read_sql(
+                query,
+                conn,
+                params=[conta]
+            )
 
-        conn.close()
+            conn.close()
 
-        return df
+            return df
 
-    # =====================================================
-    # ESTATÍSTICAS
-    # =====================================================
+        # =====================================================
+        # ESTATÍSTICAS
+        # =====================================================
 
-def buscar_cidades_mais_anomalas(self):
+    def buscar_cidades_mais_anomalas(self):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        cursor = conn.cursor()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT TOP 10
-                cidade,
-                COUNT(*) as total
-            FROM transacoes
-            WHERE is_fraude = 1
-            GROUP BY cidade
-            ORDER BY total DESC
-        """)
+            cursor.execute("""
+                SELECT TOP 10
+                    cidade,
+                    COUNT(*) as total
+                FROM transacoes
+                WHERE is_fraude = 1
+                GROUP BY cidade
+                ORDER BY total DESC
+            """)
 
-        dados = cursor.fetchall()
+            dados = cursor.fetchall()
 
-        conn.close()
+            conn.close()
 
-        return dados
+            return dados
 
-def buscar_numero_de_fraudes(self):
+    def buscar_numero_de_fraudes(self):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        cursor = conn.cursor()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                is_fraude,
-                COUNT(*)
-            FROM transacoes
-            GROUP BY is_fraude
-        """)
+            cursor.execute("""
+                SELECT
+                    is_fraude,
+                    COUNT(*)
+                FROM transacoes
+                GROUP BY is_fraude
+            """)
 
-        dados = dict(
-            cursor.fetchall()
-        )
+            dados = dict(
+                cursor.fetchall()
+            )
 
-        conn.close()
+            conn.close()
 
-        return dados
+            return dados
 
-def buscar_fraudes_por_tipo(self):
+    def buscar_fraudes_por_tipo(self):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        cursor = conn.cursor()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT TOP 10
-                tipo_transacao,
-                COUNT(*) as total
-            FROM transacoes
-            WHERE is_fraude = 1
-            GROUP BY tipo_transacao
-            ORDER BY total DESC
-        """)
+            cursor.execute("""
+                SELECT TOP 10
+                    tipo_transacao,
+                    COUNT(*) as total
+                FROM transacoes
+                WHERE is_fraude = 1
+                GROUP BY tipo_transacao
+                ORDER BY total DESC
+            """)
 
-        dados = cursor.fetchall()
+            dados = cursor.fetchall()
 
-        conn.close()
+            conn.close()
 
-        return dados
+            return dados
 
-def buscar_horario_fraudes(self):
+    def buscar_horario_fraudes(self):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        cursor = conn.cursor()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                DATEPART(HOUR, hora) as hora,
-                COUNT(*) as total
-            FROM transacoes
-            WHERE is_fraude = 1
-            GROUP BY DATEPART(HOUR, hora)
-            ORDER BY hora ASC
-        """)
+            cursor.execute("""
+                SELECT
+                    DATEPART(HOUR, hora) as hora,
+                    COUNT(*) as total
+                FROM transacoes
+                WHERE is_fraude = 1
+                GROUP BY DATEPART(HOUR, hora)
+                ORDER BY hora ASC
+            """)
 
-        dados = cursor.fetchall()
+            dados = cursor.fetchall()
 
-        conn.close()
+            conn.close()
 
-        return dados
+            return dados
 
-def buscar_numero_de_tentativas(self):
+    def buscar_numero_de_tentativas(self):
 
-        conn = get_connection()
+            conn = get_connection()
 
-        cursor = conn.cursor()
+            cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT
-                tentativas,
-                COUNT(*) as total
-            FROM transacoes
-            WHERE is_fraude = 1
-            AND tentativas >= 2
-            GROUP BY tentativas
-            ORDER BY tentativas ASC
-        """)
+            cursor.execute("""
+                SELECT
+                    tentativas,
+                    COUNT(*) as total
+                FROM transacoes
+                WHERE is_fraude = 1
+                AND tentativas >= 2
+                GROUP BY tentativas
+                ORDER BY tentativas ASC
+            """)
 
-        dados = cursor.fetchall()
+            dados = cursor.fetchall()
 
-        conn.close()
+            conn.close()
 
-        return dados
+            return dados
 
 
 
