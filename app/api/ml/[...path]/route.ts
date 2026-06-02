@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// URL da API de Machine Learning (pasta Anomalias) — porta separada da API principal
 const ML_API_URL = process.env.NEXT_PUBLIC_ML_API_URL || 'http://localhost:8001'
 
-// Proxy genérico para qualquer GET na API de ML: GET /api/ml/[...path]
-// Ex: /api/ml/cidadesmaisanomalas → http://localhost:8001/cidadesmaisanomalas
 export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
   try {
     const endpoint = params.path.join('/')
-    const response = await fetch(`${ML_API_URL}/sql/${endpoint}`, {
+    const response = await fetch(`${ML_API_URL}/api/v1/${endpoint}`, {
       method: 'GET',
       headers: { 'Accept': 'image/png, application/json' },
       cache: 'no-store',

@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const queryString = new URLSearchParams(searchParams).toString()
-    const url = `${API_URL}/sql/querry/${queryString ? '?' + queryString : ''}`
+    const url = `${API_URL}/api/v1/transacoes/search${queryString ? '?' + queryString : ''}`
 
     const response = await fetch(url, {
       method: 'GET',
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const response = await fetch(`${API_URL}/sql/transactions/`, {
+    const response = await fetch(`${API_URL}/api/v1/transacoes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

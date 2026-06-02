@@ -3,49 +3,48 @@
 import { useState, useEffect } from 'react'
 import { ShieldAlertIcon } from '@/components/Icons'
 
-// Gráficos disponíveis na API de ML (Pasta Anomalias)
 const ML_GRAFICOS = [
   {
     id: 'distribuicao-fraudes',
     titulo: 'Distribuição de Fraudes vs Normais',
     descricao: 'Comparativo geral entre transações fraudulentas e legítimas na base de dados.',
-    endpoint: '/api/ml/numerodefraudes',
+    endpoint: '/api/ml/analytics/fraud/count',
   },
   {
     id: 'cidades-anomalas',
     titulo: 'Top 10 Cidades com Mais Anomalias',
     descricao: 'Ranking das cidades com maior concentração de fraudes detectadas pelo motor.',
-    endpoint: '/api/ml/cidadesmaisanomalas',
+    endpoint: '/api/ml/analytics/fraud/cities',
   },
   {
     id: 'tipos-fraude',
     titulo: 'Tipos de Transação com Mais Fraudes',
     descricao: 'Distribuição dos tipos de transação (débito, crédito, transferência) que mais concentram anomalias.',
-    endpoint: '/api/ml/fraudes/tipos',
+    endpoint: '/api/ml/analytics/fraud/types',
   },
   {
     id: 'horario-fraudes',
     titulo: 'Horários com Mais Fraudes',
     descricao: 'Análise temporal das fraudes por hora do dia, identificando janelas de maior risco.',
-    endpoint: '/api/ml/horariofraudes',
+    endpoint: '/api/ml/analytics/fraud/hours',
   },
   {
     id: 'tentativas-anomalas',
     titulo: 'Tentativas em Transações Anômalas',
     descricao: 'Relação entre número de tentativas e valor das transações marcadas como fraude com 2+ tentativas.',
-    endpoint: '/api/ml/numerodetentativas',
+    endpoint: '/api/ml/analytics/fraud/attempts',
   },
   {
     id: 'zscore',
     titulo: 'Análise Z-Score (Dispersão Estatística)',
-    descricao: 'Visualização do modelo Z-Score aplicado à base, identificando outliers por desvio padrão.',
-    endpoint: '/api/ml/calculozscore',
+    descricao: 'Visualização do modelo Z-Score aplicado à base. (Atenção: A nova API exige uma conta específica, exibindo exemplo para conta 12345).',
+    endpoint: '/api/ml/zscore/12345',
   },
   {
     id: 'gaussiana',
     titulo: 'Distribuição Gaussiana dos Valores',
-    descricao: 'Curva de distribuição normal aplicada aos valores de transação para identificar anomalias estatísticas.',
-    endpoint: '/api/ml/calculogaussiana',
+    descricao: 'Curva de distribuição normal para identificar anomalias estatísticas. (Atenção: A nova API exige uma conta específica, exibindo exemplo para conta 12345).',
+    endpoint: '/api/ml/gaussiana/12345',
   },
 ]
 

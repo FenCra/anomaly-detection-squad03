@@ -52,10 +52,9 @@ export default function TransactionsPage() {
   const [contasDisponiveis, setContasDisponiveis] = useState<string[]>([])
   const [cidadesDisponiveis, setCidadesDisponiveis] = useState<string[]>([])
 
-  // Busca lista de contas e cidades dinamicamente do backend
   useEffect(() => {
     // Buscar contas
-    fetch('/api/ml/contas')
+    fetch('/api/ml/transacoes/contas')
       .then(res => res.json())
       .then(data => {
         if (data.contas && Array.isArray(data.contas)) {
@@ -65,7 +64,6 @@ export default function TransactionsPage() {
       })
       .catch(err => console.error("Falha ao buscar contas:", err))
 
-    // Buscar cidades via front-end lendo a massa de transações (limit alto para englobar histórico)
     fetchTransactions({ limit: 30000 })
       .then(res => {
         if (res.items && Array.isArray(res.items)) {
@@ -76,7 +74,6 @@ export default function TransactionsPage() {
       .catch(err => console.error("Falha ao buscar cidades dinamicamente:", err))
   }, [])
 
-  // Recebe page e size explicitamente para evitar leitura de state React stale (async)
   const loadTransactions = async (activeFilters: Filters, page: number, size: number) => {
     setLoading(true)
     setError(null)
@@ -87,7 +84,6 @@ export default function TransactionsPage() {
         ...activeFilters,
       }
 
-      // Remove params vazios antes de enviar
       Object.keys(params).forEach((key) => {
         if (params[key] === undefined || params[key] === '' || params[key] === 'all') {
           delete params[key]
@@ -104,7 +100,6 @@ export default function TransactionsPage() {
     }
   }
 
-  // Ao mudar filtro: zera página e já passa page=0 explicitamente (não depende do setState async)
   const handleFilterChange = (key: keyof Filters, value: any) => {
     const newFilters = { ...filters, [key]: value }
     if (value === '' || value === 'all' || value === undefined) {
@@ -119,13 +114,11 @@ export default function TransactionsPage() {
     handleFilterChange('search', e.target.value)
   }
 
-  // Disparado nos cliques de navegação de página
   const goToPage = (page: number) => {
     setCurrentPage(page)
     loadTransactions(filters, page, pageSize)
   }
 
-  // Disparado na mudança de itens por página: zera para página 0
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize)
     setCurrentPage(0)
@@ -134,7 +127,6 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     loadTransactions(filters, 0, pageSize)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {

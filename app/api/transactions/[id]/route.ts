@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const id = params.id
-    const response = await fetch(`${API_URL}/sql/transactions/${id}`, {
+    const response = await fetch(`${API_URL}/api/v1/transacoes/${id}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -26,8 +26,6 @@ export async function GET(
   }
 }
 
-// PATCH /api/transactions/{id} — Julgamento do Analista (Caso de Uso: Julgar Transação)
-// Encaminha o veredito final ao FastAPI para persistência no banco de dados.
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -36,9 +34,8 @@ export async function PATCH(
     const id = params.id
     const body = await request.json()
 
-    // O FastAPI (backend) espera um PUT na rota /fraude e o is_fraude como query parameter
     const isFraudeQuery = body.is_fraude ? 'true' : 'false'
-    const url = `${API_URL}/sql/transactions/${id}/fraude?is_fraude=${isFraudeQuery}`
+    const url = `${API_URL}/api/v1/transacoes/${id}/fraude?is_fraude=${isFraudeQuery}`
 
     const response = await fetch(url, {
       method: 'PUT',

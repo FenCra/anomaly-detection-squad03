@@ -194,11 +194,11 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
   })()
 
   const mlCharts = [
-    { title: 'Análise Z-Score da Conta', endpoint: `/api/ml/calculozscore/${transaction.conta}` },
-    { title: 'Curva Gaussiana da Conta', endpoint: `/api/ml/calculogaussiana/${transaction.conta}` },
-    { title: 'Análise Geo Distância', endpoint: `/api/ml/geo/distancia/${transaction.conta}` },
-    { title: 'Análise Geo Velocidade', endpoint: `/api/ml/geo/velocidade/${transaction.conta}` },
-    { title: 'Risco de IP', endpoint: `/api/ml/geo/ip/${transaction.conta}` },
+    { title: 'Análise Z-Score da Conta', endpoint: `/api/ml/zscore/${transaction.conta}` },
+    { title: 'Curva Gaussiana da Conta', endpoint: `/api/ml/gaussiana/${transaction.conta}` },
+    { title: 'Análise Geo Distância', endpoint: `/api/ml/distancia/${transaction.conta}` },
+    { title: 'Análise Geo Velocidade', endpoint: `/api/ml/velocidade/${transaction.conta}` },
+    { title: 'Risco de IP', endpoint: `/api/ml/ip/${transaction.conta}` },
   ]
 
   return (
