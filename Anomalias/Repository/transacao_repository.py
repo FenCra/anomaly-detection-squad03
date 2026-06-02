@@ -294,71 +294,87 @@ class TransacaoRepository:
 
 
     def query_transacoes(
-            self,
-            categoria=None,
-            cidade=None,
-            valor_min=None,
-            valor_max=None,
-            tipo_transacao=None,
-            dispositivo=None,
-            data_inicio=None,
-            data_fim=None
-        ):
+        self,
+        conta=None,
+        categoria=None,
+        cidade=None,
+        valor_min=None,
+        valor_max=None,
+        tipo_transacao=None,
+        dispositivo=None,
+        data_inicio=None,
+        data_fim=None,
+        skip: int = 0,
+        limit: int = 50
+    ):
 
-            conn = get_connection()
-            cursor = conn.cursor()
+        conn = get_connection()
+        cursor = conn.cursor()
 
-            query = "SELECT * FROM transacoes WHERE 1=1"
+        query = "SELECT * FROM transacoes WHERE 1=1"
 
-            params = []
+        params = []
 
-            if categoria:
-                query += " AND categoria = ?"
-                params.append(categoria)
+        if conta:
+            query += " AND conta = ?"
+            params.append(conta)
 
-            if cidade:
-                query += " AND cidade = ?"
-                params.append(cidade)
+        if categoria:
+            query += " AND categoria = ?"
+            params.append(categoria)
 
-            if valor_min is not None:
-                query += " AND valor >= ?"
-                params.append(valor_min)
+        if cidade:
+            query += " AND cidade = ?"
+            params.append(cidade)
 
-            if valor_max is not None:
-                query += " AND valor <= ?"
-                params.append(valor_max)
+        if valor_min is not None:
+            query += " AND valor >= ?"
+            params.append(valor_min)
 
-            if tipo_transacao:
-                query += " AND tipo_transacao = ?"
-                params.append(tipo_transacao)
+        if valor_max is not None:
+            query += " AND valor <= ?"
+            params.append(valor_max)
 
-            if dispositivo:
-                query += " AND dispositivo = ?"
-                params.append(dispositivo)
+        if tipo_transacao:
+            query += " AND tipo_transacao = ?"
+            params.append(tipo_transacao)
 
-            if data_inicio:
-                query += " AND data >= ?"
-                params.append(data_inicio)
+        if dispositivo:
+            query += " AND dispositivo = ?"
+            params.append(dispositivo)
 
-            if data_fim:
-                query += " AND data <= ?"
-                params.append(data_fim)
+        if data_inicio:
+            query += " AND data >= ?"
+            params.append(data_inicio)
 
-            cursor.execute(query, params)
+        if data_fim:
+            query += " AND data <= ?"
+            params.append(data_fim)
 
-            colunas = [col[0] for col in cursor.description]
+        # Get total before pagination
+        count_query = query.replace("SELECT *", "SELECT COUNT(*)")
+        cursor.execute(count_query, params)
+        total = cursor.fetchone()[0]
 
-            dados = [
-                dict(zip(colunas, row))
-                for row in cursor.fetchall()
-            ]
+        # Add pagination
+        query += " ORDER BY data DESC, hora DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        params.extend([skip, limit])
 
-            conn.close()
+        cursor.execute(query, params)
 
-            return {
-                "total": len(dados),
-                "dados": dados
-            }
+        colunas = [col[0] for col in cursor.description]
+
+        dados = [
+            dict(zip(colunas, row))
+            for row in cursor.fetchall()
+        ]
+
+        conn.close()
+
+        return {
+            "total": total,
+            "dados": dados
+        }
     
 
 
@@ -488,14 +504,14 @@ class TransacaoRepository:
             cursor = conn.cursor()
 
             cursor.execute("""
-                SELECT TOP 10
-                    cidade,
-                    COUNT(*) as total
-                FROM transacoes
-                WHERE is_fraude = 1
-                GROUP BY cidade
-                ORDER BY total DESC
-            """)
+            SELECT TOP 10
+                cidade,
+                COUNT(*) as total
+            FROM transacoes
+            WHERE is_fraude = 1
+            GROUP BY cidade
+            ORDER BY total DESC
+        """)
 
             dados = cursor.fetchall()
 
@@ -532,14 +548,14 @@ class TransacaoRepository:
             cursor = conn.cursor()
 
             cursor.execute("""
-                SELECT TOP 10
-                    tipo_transacao,
-                    COUNT(*) as total
-                FROM transacoes
-                WHERE is_fraude = 1
-                GROUP BY tipo_transacao
-                ORDER BY total DESC
-            """)
+            SELECT TOP 10
+                tipo_transacao,
+                COUNT(*) as total
+            FROM transacoes
+            WHERE is_fraude = 1
+            GROUP BY tipo_transacao
+            ORDER BY total DESC
+        """)
 
             dados = cursor.fetchall()
 
@@ -554,14 +570,14 @@ class TransacaoRepository:
             cursor = conn.cursor()
 
             cursor.execute("""
-                SELECT
-                    DATEPART(HOUR, hora) as hora,
-                    COUNT(*) as total
-                FROM transacoes
-                WHERE is_fraude = 1
-                GROUP BY DATEPART(HOUR, hora)
-                ORDER BY hora ASC
-            """)
+            SELECT
+                DATEPART(HOUR, hora) as hora,
+                COUNT(*) as total
+            FROM transacoes
+            WHERE is_fraude = 1
+            GROUP BY DATEPART(HOUR, hora)
+            ORDER BY hora ASC
+        """)
 
             dados = cursor.fetchall()
 

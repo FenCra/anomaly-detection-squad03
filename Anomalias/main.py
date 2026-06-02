@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 from fastapi import FastAPI
 from Controllers.anomalia_controller import router
 

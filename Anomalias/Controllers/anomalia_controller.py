@@ -125,42 +125,31 @@ def listar_cidades():
 
 @router.get("/transacoes/search")
 def buscar_transacoes(
-
+    conta: str = Query(None),
     categoria: str = Query(None),
-
     cidade: str = Query(None),
-
     valor_min: float = Query(None),
-
     valor_max: float = Query(None),
-
     tipo_transacao: str = Query(None),
-
     dispositivo: str = Query(None),
-
     data_inicio: str = Query(None),
-
-    data_fim: str = Query(None)
-
+    data_fim: str = Query(None),
+    skip: int = Query(0),
+    limit: int = Query(50)
 ):
 
     return transacao_service.buscar_transacoes(
-
+        conta=conta,
         categoria=categoria,
-
         cidade=cidade,
-
         valor_min=valor_min,
-
         valor_max=valor_max,
-
         tipo_transacao=tipo_transacao,
-
         dispositivo=dispositivo,
-
         data_inicio=data_inicio,
-
-        data_fim=data_fim
+        data_fim=data_fim,
+        skip=skip,
+        limit=limit
     )
 
 # Rota dinâmica movida para baixo das estáticas para evitar conflito de rotas

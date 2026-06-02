@@ -105,31 +105,26 @@ class TransacaoService:
     # =====================================================
 
     def buscar_transacoes(
-
         self,
-
+        conta=None,
         categoria=None,
-
         cidade=None,
-
         valor_min=None,
-
         valor_max=None,
-
         tipo_transacao=None,
-
         dispositivo=None,
-
         data_inicio=None,
-
-        data_fim=None
-
+        data_fim=None,
+        skip=0,
+        limit=50
     ):
 
         return (
 
             self.repository
             .query_transacoes(
+
+                conta=conta,
 
                 categoria=categoria,
 
@@ -145,6 +140,10 @@ class TransacaoService:
 
                 data_inicio=data_inicio,
 
-                data_fim=data_fim
+                data_fim=data_fim,
+
+                skip=skip,
+
+                limit=limit
             )
         )

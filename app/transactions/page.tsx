@@ -64,11 +64,12 @@ export default function TransactionsPage() {
       })
       .catch(err => console.error("Falha ao buscar contas:", err))
 
-    fetchTransactions({ limit: 30000 })
-      .then(res => {
-        if (res.items && Array.isArray(res.items)) {
-          const cidadesUnicas = Array.from(new Set(res.items.map(t => t.cidade).filter(Boolean))) as string[]
-          setCidadesDisponiveis(cidadesUnicas.sort())
+    // Buscar cidades via novo endpoint do backend (mais rápido e não trava o servidor)
+    fetch('/api/ml/transacoes/cidades')
+      .then(res => res.json())
+      .then(data => {
+        if (data.cidades && Array.isArray(data.cidades)) {
+          setCidadesDisponiveis(data.cidades.sort())
         }
       })
       .catch(err => console.error("Falha ao buscar cidades dinamicamente:", err))
