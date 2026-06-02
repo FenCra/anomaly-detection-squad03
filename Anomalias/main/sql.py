@@ -23,10 +23,9 @@ from fastapi import Query
 def get_connection():
     return pyodbc.connect(
     "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-FRGA4OU;"
+    "SERVER=.\\SQLEXPRESS;"
     "DATABASE=banco;"
-    "UID=sa;"
-    "PWD=123;"
+    "Trusted_Connection=yes;"
 )
 
 

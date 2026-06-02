@@ -5,10 +5,9 @@ from datetime import datetime
 # conexão usando Windows Authentication
 conn = pyodbc.connect(
     "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=DESKTOP-FRGA4OU;"
+    "SERVER=.\\SQLEXPRESS;"
     "DATABASE=banco;"
-    "UID=sa;"
-    "PWD=123;"
+    "Trusted_Connection=yes;"
 )
 
 cursor = conn.cursor()

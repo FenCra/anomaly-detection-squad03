@@ -102,7 +102,7 @@ Acesse a aplicação em: `http://localhost:3000`
 Navegue até a pasta `Anomalias` (se já não estiver nela) e execute:
 ```bash
 cd Anomalias
-python -m uvicorn main.main:app --port 8001 --reload
+python -m uvicorn main:app --port 8001 --reload
 ```
 
 A API do backend estará disponível em: `http://localhost:8001`
