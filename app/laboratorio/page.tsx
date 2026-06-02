@@ -34,18 +34,6 @@ const ML_GRAFICOS = [
     descricao: 'Relação entre número de tentativas e valor das transações marcadas como fraude com 2+ tentativas.',
     endpoint: '/api/ml/analytics/fraud/attempts',
   },
-  {
-    id: 'zscore',
-    titulo: 'Análise Z-Score (Dispersão Estatística)',
-    descricao: 'Visualização do modelo Z-Score aplicado à base. (Atenção: A nova API exige uma conta específica, exibindo exemplo para conta 12345).',
-    endpoint: '/api/ml/zscore/12345',
-  },
-  {
-    id: 'gaussiana',
-    titulo: 'Distribuição Gaussiana dos Valores',
-    descricao: 'Curva de distribuição normal para identificar anomalias estatísticas. (Atenção: A nova API exige uma conta específica, exibindo exemplo para conta 12345).',
-    endpoint: '/api/ml/gaussiana/12345',
-  },
 ]
 
 function GraficoCard({ titulo, descricao, endpoint, id, delay }: {
@@ -132,8 +120,9 @@ export default function LaboratorioPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900">Laboratório de Machine Learning</h1>
             <p className="text-sm text-gray-500 mt-1">
-              Visualizações estatísticas geradas em tempo real pelo Motor de Detecção de Anomalias (Z-Score e Gaussiana).
-              Os gráficos são processados pelo servidor de ML e devolvidos como imagens científicas.
+              Visualizações estatísticas agregadas geradas em tempo real pelo Motor de Detecção de Anomalias.
+              Os gráficos são processados pelo servidor de ML e devolvidos como imagens científicas sobre a base completa de transações.
+              Para análises individuais por conta (Z-Score e Gaussiana), abra o modal de detalhes de uma transação.
             </p>
             <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg text-xs text-purple-700 font-medium">
               <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />

@@ -83,7 +83,7 @@ class LocalizacaoService:
         df = (
 
             self.repository
-            .buscar_velocidade_por_conta(
+            .buscar_velocidade_geografica(
                 conta
             )
         )

@@ -104,7 +104,7 @@ def deletar_transacao(
 def dashboard_metrics():
 
     return (
-        estatistica_service
+        transacao_service
         .dashboard_metrics()
     )
 

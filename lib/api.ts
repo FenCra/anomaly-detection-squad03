@@ -35,37 +35,41 @@ export interface TransactionsResponse {
 
 // Transações
 export async function fetchTransactions(params: Record<string, any> = {}): Promise<TransactionsResponse> {
-  const serverParams: Record<string, any> = { ...params }
+  const serverParams: Record<string, any> = {}
   
-  if (serverParams.status === 'negada') {
-     serverParams.is_fraude = true
-  } else if (serverParams.status === 'aprovada') {
-     serverParams.is_fraude = false
-  }
-  delete serverParams.status
-  
-  const limit = serverParams.limit ? Number(serverParams.limit) : 50
-  const skip = serverParams.skip ? Number(serverParams.skip) : 0
-  delete serverParams.limit
-  delete serverParams.skip
+  // Extrair paginação e repassar ao servidor
+  const limit = params.limit ? Number(params.limit) : 50
+  const skip = params.skip ? Number(params.skip) : 0
 
-  Object.keys(serverParams).forEach((key) => {
-    if (serverParams[key] === undefined || serverParams[key] === '' || serverParams[key] === 'all') {
-      delete serverParams[key]
-    }
+  // Converter status para is_fraude
+  if (params.status === 'negada') {
+    serverParams.is_fraude = true
+  } else if (params.status === 'aprovada') {
+    serverParams.is_fraude = false
+  }
+
+  // Copiar restante dos params (exceto status, limit, skip)
+  Object.entries(params).forEach(([key, value]) => {
+    if (key === 'status' || key === 'limit' || key === 'skip' || key === 'search') return
+    if (value === undefined || value === '' || value === 'all') return
+    serverParams[key] = value
   })
+
+  // Enviar paginação e filtros ao backend
+  serverParams.limit = limit
+  serverParams.skip = skip
 
   try {
     const response = await api.get('/transactions', { params: serverParams })
-    let data = response.data.dados || response.data.transacoes || response.data || []
-    
-    // Filtros client-side complementares (is_fraude e search)
-    if (serverParams.is_fraude !== undefined) {
-      data = data.filter((t: any) => Boolean(t.is_fraude) === Boolean(serverParams.is_fraude))
-    }
+    const responseData = response.data
 
-    if (serverParams.search) {
-      const q = serverParams.search.toLowerCase()
+    // O backend retorna { total: <COUNT real do banco>, dados: [...] }
+    let data: any[] = responseData.dados || responseData.transacoes || []
+    const serverTotal: number = responseData.total ?? data.length
+
+    // Filtro de search somente no client (backend ainda não suporta)
+    if (params.search) {
+      const q = params.search.toLowerCase()
       data = data.filter((t: any) =>
         (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
         (t.conta && t.conta.toLowerCase().includes(q)) ||
@@ -73,10 +77,7 @@ export async function fetchTransactions(params: Record<string, any> = {}): Promi
       )
     }
 
-    const total = data.length
-    const items = data.slice(skip, skip + limit)
-
-    return { total, items }
+    return { total: serverTotal, items: data }
   } catch (error) {
     console.error('Error fetching transactions:', error)
     return { total: 0, items: [] }
@@ -122,13 +123,20 @@ export async function fetchAnomalies(params: Record<string, any> = {}) {
 // Dashboard
 export async function fetchDashboard() {
   try {
-    // Busca ampla para contagem e consolidação das métricas
-    const allTransactions = await fetchTransactions({ limit: 100000 })
-    const transactionsList = allTransactions.items
-    
-    const totalTransactionsReal = allTransactions.total || 0
-    let totalAnomaliesReal = 0
-    let totalMovido = 0
+    // 1. Busca métricas reais (totais exatos) diretamente do endpoint dedicado do backend
+    let backendMetrics: any = null
+    try {
+      const metricsRes = await fetch('/api/ml/dashboard/metrics')
+      if (metricsRes.ok) backendMetrics = await metricsRes.json()
+    } catch (_) { /* fallback para cálculo local */ }
+
+    // 2. Busca uma amostra razoável de transações para os gráficos de distribuição
+    const sample = await fetchTransactions({ limit: 2000 })
+    const transactionsList = sample.items
+
+    const totalTransactionsReal = backendMetrics?.total_transacoes ?? sample.total
+    const totalAnomaliesReal = backendMetrics?.total_fraudes ?? transactionsList.filter((t: any) => t.is_fraude).length
+    const totalMovido = backendMetrics?.total_movimentado ?? transactionsList.reduce((acc: number, t: any) => acc + t.valor, 0)
 
     const volumeDiasMap = new Map<string, number>()
     const valoresBuckets = {
@@ -142,10 +150,7 @@ export async function fetchDashboard() {
     const userAnomaliasMap = new Map<string, number>()
 
     transactionsList.forEach((t) => {
-      totalMovido += t.valor
-
       if (t.is_fraude) {
-        totalAnomaliesReal++
         userAnomaliasMap.set(t.conta, (userAnomaliasMap.get(t.conta) || 0) + 1)
       }
 
@@ -170,19 +175,15 @@ export async function fetchDashboard() {
       }
       volumeDiasMap.set(diaDaSemana, (volumeDiasMap.get(diaDaSemana) || 0) + 1)
 
-      // Distribuição de Valores
       if (t.valor <= 50) valoresBuckets['Até R$50']++
       else if (t.valor <= 200) valoresBuckets['Até R$200']++
       else if (t.valor <= 1000) valoresBuckets['Até R$1.000']++
       else if (t.valor <= 5000) valoresBuckets['Até R$5.000']++
       else valoresBuckets['Acima de R$5k']++
 
-      // Transações por Hora
       const horaStr = t.hora ? t.hora.substring(0, 2) + ':00' : '00:00'
       horaMap.set(horaStr, (horaMap.get(horaStr) || 0) + 1)
     })
-
-    const totalTx = transactionsList.length || 1
 
     const topUsuarios = Array.from(userAnomaliasMap.entries())
       .map(([name, value]) => ({ name, value }))
@@ -203,7 +204,6 @@ export async function fetchDashboard() {
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
     
-    // Calcula totais mês atual vs mês anterior (assumindo que o Date da transação vai cair no agrupamento correto, caso a base de teste seja atemporal, fallback pra valores próximos de zero vs atuais para sempre renderizar algo não infinito)
     let trCurrent = 0, trPrev = 0
     let anomCurrent = 0, anomPrev = 0
     let valorCurrent = 0, valorPrev = 0
@@ -212,7 +212,6 @@ export async function fetchDashboard() {
     transactionsList.forEach(t => {
       const d = new Date(t.data)
       const isCurrentMonth = d.getMonth() === currentMonth && d.getFullYear() === currentYear
-      // Checa se é exatamente do mês passado:
       let isPrevMonth = false
       if (currentMonth === 0) {
         if (d.getMonth() === 11 && d.getFullYear() === currentYear - 1) isPrevMonth = true
@@ -221,17 +220,14 @@ export async function fetchDashboard() {
       }
 
       if (isCurrentMonth) {
-        trCurrent++
-        valorCurrent += t.valor
+        trCurrent++; valorCurrent += t.valor
         if (t.is_fraude) anomCurrent++
       } else if (isPrevMonth) {
-        trPrev++
-        valorPrev += t.valor
+        trPrev++; valorPrev += t.valor
         if (t.is_fraude) anomPrev++
       }
     })
 
-    // Caso a base seja puramente do passado e retorne tudo 0 pros meses atuais (base sqlite fixa), calculamos o dinâmico geral dividindo a massa no meio pelo seu tempo:
     if (trCurrent === 0 && trPrev === 0 && transactionsList.length > 0) {
       const meio = Math.floor(transactionsList.length / 2)
       transactionsList.slice(0, meio).forEach(t => { trCurrent++; valorCurrent += t.valor; if (t.is_fraude) anomCurrent++ })
@@ -245,25 +241,15 @@ export async function fetchDashboard() {
 
     const percAnomalias = totalTransactionsReal > 0 ? (totalAnomaliesReal / totalTransactionsReal) * 100 : 0
 
-    // Valor movimentado: extrapolado da amostra de 1000 para o total real do banco
-    // (estimativa proporcional — endpoint /dashboard/metrics no backend tornaria isso exato)
-    const valorExtrapolado = transactionsList.length > 0
-      ? (totalMovido / transactionsList.length) * totalTransactionsReal
-      : 0
-
     return {
       total_transactions: totalTransactionsReal,
       total_anomalies: totalAnomaliesReal,
       anomaly_percentage: percAnomalias,
-      total_movimentado: valorExtrapolado,
-
-      // Comparações dinâmicas mês atual vs mês passado:
+      total_movimentado: totalMovido,
       comparacao_transacoes: calcPerc(trCurrent, trPrev),
       comparacao_anomalias: calcPerc(anomCurrent, anomPrev),
       comparacao_aprovadas: calcPerc(aprovCurrent, aprovPrev),
       comparacao_valor: calcPerc(valorCurrent, valorPrev),
-      
-      // Gráficos de Pizza sem mocks
       distribuicao_transacoes: [
         { name: 'Normal', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
         { name: 'Anomalia', value: totalAnomaliesReal }
@@ -271,7 +257,7 @@ export async function fetchDashboard() {
       volume_dias: volumeDiasOrdenado,
       distribuicao_valores: Object.entries(valoresBuckets).map(([name, value]) => ({ name, value })),
       resultado_anomalias: [
-        { name: 'Aprovada', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) }, 
+        { name: 'Aprovada', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
         { name: 'Bloqueada', value: totalAnomaliesReal }
       ],
       transacoes_hora: horasOrdenadas,
