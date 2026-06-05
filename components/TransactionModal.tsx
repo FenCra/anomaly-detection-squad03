@@ -137,6 +137,9 @@ function MLChart({ title, endpoint, delay }: { title: string; endpoint: string; 
 
 export default function TransactionModal({ transaction, onClose, onJulgamento }: TransactionModalProps) {
   const [salvando, setSalvando] = useState(false)
+  const [deletando, setDeletando] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleteSuccess, setDeleteSuccess] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [julgado, setJulgado] = useState<'fraude' | 'legitima' | null>(null)
   const [activeTab, setActiveTab] = useState<'detalhes' | 'analise'>('detalhes')
@@ -162,19 +165,34 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
     }
   }
 
+  const handleExcluir = async () => {
+    setDeletando(true)
+    setErro(null)
+    try {
+      await axios.delete(`/api/transactions/${transaction.id}`)
+      setDeleteSuccess(true)
+      setConfirmDelete(false)
+    } catch (e: any) {
+      setConfirmDelete(false)
+      setErro('Falha ao excluir transação. Verifique a conexão com o servidor e tente novamente.')
+    } finally {
+      setDeletando(false)
+    }
+  }
+
   // Status dinâmico: julgado pelo analista SEMPRE sobrepõe o motor ML
   const statusDinamico = (() => {
     if (julgado === 'fraude') {
       return {
         label: 'Fraude Confirmada pelo Analista',
-        descricao: '⚖️ Fraude confirmada manualmente pelo Analista. O registro foi atualizado no banco de dados.',
+        descricao: 'Fraude confirmada manualmente pelo Analista. O registro foi atualizado no banco de dados. ✅ ',
         theme: 'bg-red-100 text-red-900 border-red-400',
       }
     }
     if (julgado === 'legitima') {
       return {
         label: 'Aprovada pelo Analista',
-        descricao: '✅ Transação revisada e aprovada como legítima pelo Analista. O registro foi atualizado no banco de dados.',
+        descricao: 'Transação revisada e aprovada como legítima pelo Analista. O registro foi atualizado no banco de dados. ✅ ',
         theme: 'bg-green-100 text-green-900 border-green-400',
       }
     }
@@ -182,13 +200,13 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
     if (transaction.is_fraude) {
       return {
         label: 'Negada / Anomalia Detectada',
-        descricao: '🤖 Transação bloqueada automaticamente pelo motor estatístico.',
+        descricao: 'Transação bloqueada por ser considerada anomalia',
         theme: 'bg-red-50 text-red-700 border-red-200',
       }
     }
     return {
       label: 'Aprovada',
-      descricao: '🤖 Transação aprovada pelo motor estatístico.',
+      descricao: 'Transação aprovada por não ter sido considerada anomalia',
       theme: 'bg-green-50 text-green-700 border-green-200',
     }
   })()
@@ -206,6 +224,67 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
       className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
       onClick={onClose}
     >
+      {/* Modal de Confirmação de Exclusão */}
+      {confirmDelete && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 max-w-md w-full mx-4 flex flex-col gap-5">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-7 h-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">Excluir Transação?</h3>
+              <p className="text-sm text-gray-500">
+                Esta ação é <strong className="text-red-600">permanente</strong> e não pode ser desfeita.
+                A transação <span className="font-semibold text-gray-700">#{transaction.id}</span> será removida do banco de dados.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={deletando}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleExcluir}
+                disabled={deletando}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {deletando ? (
+                  <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Excluindo...</>
+                ) : 'Sim, excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Sucesso após exclusão */}
+      {deleteSuccess && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-8 max-w-md w-full mx-4 flex flex-col items-center gap-5 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <svg className="w-9 h-9 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">Transação excluída!</h3>
+              <p className="text-sm text-gray-500">A transação <span className="font-semibold text-gray-700">#{transaction.id}</span> foi removida permanentemente do sistema.</p>
+            </div>
+            <button
+              onClick={() => { onClose(); window.location.reload() }}
+              className="px-8 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-700 text-white font-bold shadow-sm transition-all"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -344,12 +423,21 @@ export default function TransactionModal({ transaction, onClose, onJulgamento }:
 
         {/* Rodapé */}
         <div className="p-6 border-t border-gray-200 bg-white flex justify-between items-center shrink-0">
-          <button
-            onClick={onClose}
-            className="px-6 py-2.5 text-gray-700 hover:bg-gray-100 rounded-xl transition-colors font-bold"
-          >
-            Sair
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={onClose}
+              className="px-6 py-2.5 text-gray-700 hover:bg-gray-100 rounded-xl transition-colors font-bold"
+            >
+              Sair
+            </button>
+            <button
+              disabled={deletando || salvando}
+              onClick={() => setConfirmDelete(true)}
+              className="px-4 py-2.5 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl transition-colors font-bold border border-transparent hover:border-red-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Deletar Transação
+            </button>
+          </div>
 
           <div className="flex gap-4">
             <button

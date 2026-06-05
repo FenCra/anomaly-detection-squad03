@@ -51,6 +51,8 @@ export default function TransactionsPage() {
   const [total, setTotal] = useState(0)
   const [contasDisponiveis, setContasDisponiveis] = useState<string[]>([])
   const [cidadesDisponiveis, setCidadesDisponiveis] = useState<string[]>([])
+  const [contaDropdownOpen, setContaDropdownOpen] = useState(false)
+  const [contaSearch, setContaSearch] = useState('')
 
   useEffect(() => {
     // Buscar contas
@@ -171,16 +173,62 @@ export default function TransactionsPage() {
         {/* Filter Selects & Pills */}
         <div className="flex flex-wrap items-center gap-2 pr-2">
           
+          {/* Conta - Dropdown Customizado */}
           <div className="relative">
-            <select
-              className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
-              value={filters.conta || 'all'}
-              onChange={(e) => handleFilterChange('conta', e.target.value)}
+            <button
+              type="button"
+              onClick={() => setContaDropdownOpen(v => !v)}
+              className={`appearance-none px-5 py-2.5 bg-gray-50 border rounded-full text-sm font-bold text-left min-w-[170px] hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 transition-colors flex items-center justify-between gap-2 ${
+                filters.conta ? 'border-blue-300 bg-blue-50 text-blue-700' : 'border-gray-100 text-gray-700'
+              }`}
             >
-              <option value="all">Todas as Contas</option>
-              {contasDisponiveis.map(c => <option key={c} value={c}>Conta {c}</option>)}
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
+              <span className="truncate max-w-[120px]">{filters.conta ? `Conta ${filters.conta}` : 'Todas as Contas'}</span>
+              <span className={`text-xs transition-transform ${contaDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
+            </button>
+
+            {contaDropdownOpen && (
+              <div className="absolute top-full mt-2 left-0 z-50 bg-white border border-gray-200 rounded-2xl shadow-xl shadow-gray-200/60 w-64 overflow-hidden">
+                <div className="p-2 border-b border-gray-100">
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Buscar conta..."
+                    value={contaSearch}
+                    onChange={e => setContaSearch(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50 placeholder-gray-400"
+                  />
+                </div>
+                <div className="max-h-52 overflow-y-auto py-1">
+                  <button
+                    type="button"
+                    onClick={() => { handleFilterChange('conta', undefined); setContaDropdownOpen(false); setContaSearch('') }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 ${
+                      !filters.conta ? 'text-blue-600 font-bold bg-blue-50/60' : 'text-gray-600 font-medium'
+                    }`}
+                  >
+                    Todas as Contas
+                  </button>
+                  {contasDisponiveis
+                    .filter(c => c.toLowerCase().includes(contaSearch.toLowerCase()))
+                    .map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => { handleFilterChange('conta', c); setContaDropdownOpen(false); setContaSearch('') }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 ${
+                          filters.conta === c ? 'text-blue-600 font-bold bg-blue-50/60' : 'text-gray-700 font-medium'
+                        }`}
+                      >
+                        Conta {c}
+                      </button>
+                    ))
+                  }
+                  {contasDisponiveis.filter(c => c.toLowerCase().includes(contaSearch.toLowerCase())).length === 0 && (
+                    <p className="px-4 py-3 text-xs text-gray-400 text-center">Nenhuma conta encontrada</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="relative">
@@ -312,10 +360,21 @@ export default function TransactionsPage() {
       <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/40 border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <h2 className="text-lg font-bold text-gray-900">Histórico de Transações</h2>
-          <p className="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-            Mostrando <strong>{currentPage * pageSize + transactions.length}</strong> de{' '}
-            <strong>{total}</strong>
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
+              Mostrando <strong>{currentPage * pageSize + transactions.length}</strong> de{' '}
+              <strong>{total}</strong>
+            </p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Nova Transação
+            </button>
+          </div>
         </div>
 
         {loading ? (

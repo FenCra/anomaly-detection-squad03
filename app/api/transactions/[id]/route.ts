@@ -54,3 +54,25 @@ export async function PATCH(
     )
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const id = params.id
+    const response = await fetch(`${API_URL}/api/v1/transacoes/${id}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) throw new Error(`API error: ${response.status}`)
+
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    console.error('API Route DELETE Error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Falha ao deletar transação' },
+      { status: 500 }
+    )
+  }
+}

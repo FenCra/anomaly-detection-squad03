@@ -99,6 +99,10 @@ export async function patchTransaction(id: number, payload: Partial<Pick<Transac
   return response.data
 }
 
+export async function deleteTransaction(id: number): Promise<void> {
+  await api.delete(`/transactions/${id}`)
+}
+
 export interface Anomaly extends Transaction {
   motivo: string
   regra: string

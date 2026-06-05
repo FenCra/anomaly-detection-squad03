@@ -69,6 +69,7 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
     try {
       setError(null)
       const payload = {
+        id: Math.floor(Math.random() * 1000000) + 10000,
         ...data,
         dia_semana: new Date(data.data).toLocaleDateString('pt-BR', { weekday: 'long' }),
         estado: 'SP',

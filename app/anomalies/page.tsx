@@ -35,14 +35,9 @@ export default function AnomaliesPage() {
     loadAnomalies()
   }, [selectedRule])
 
-  const handleAnomalyClick = async (anomaly: Anomaly) => {
-    try {
-      const transaction = await fetchTransaction(anomaly.id)
-      setSelectedTransaction(transaction)
-      setShowModal(true)
-    } catch (err) {
-      console.error('Error fetching transaction:', err)
-    }
+  const handleAnomalyClick = (anomaly: Anomaly) => {
+    setSelectedTransaction(anomaly)
+    setShowModal(true)
   }
 
   const severityDistribution = [
