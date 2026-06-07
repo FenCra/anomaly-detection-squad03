@@ -304,6 +304,7 @@ class TransacaoRepository:
         dispositivo=None,
         data_inicio=None,
         data_fim=None,
+        is_fraude=None,
         skip: int = 0,
         limit: int = 50
     ):
@@ -351,6 +352,9 @@ class TransacaoRepository:
             query += " AND data <= ?"
             params.append(data_fim)
 
+        if is_fraude is not None:
+            query += " AND is_fraude = ?"
+            params.append(1 if is_fraude else 0)
         # Get total before pagination
         count_query = query.replace("SELECT *", "SELECT COUNT(*)")
         cursor.execute(count_query, params)

@@ -115,35 +115,22 @@ class TransacaoService:
         dispositivo=None,
         data_inicio=None,
         data_fim=None,
+        is_fraude=None,
         skip=0,
         limit=50
     ):
 
-        return (
-
-            self.repository
-            .query_transacoes(
-
-                conta=conta,
-
-                categoria=categoria,
-
-                cidade=cidade,
-
-                valor_min=valor_min,
-
-                valor_max=valor_max,
-
-                tipo_transacao=tipo_transacao,
-
-                dispositivo=dispositivo,
-
-                data_inicio=data_inicio,
-
-                data_fim=data_fim,
-
-                skip=skip,
-
-                limit=limit
-            )
+        return self.repository.query_transacoes(
+            conta=conta,
+            categoria=categoria,
+            cidade=cidade,
+            valor_min=valor_min,
+            valor_max=valor_max,
+            tipo_transacao=tipo_transacao,
+            dispositivo=dispositivo,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+            is_fraude=is_fraude,
+            skip=skip,
+            limit=limit
         )
