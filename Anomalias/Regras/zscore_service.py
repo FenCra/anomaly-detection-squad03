@@ -1,6 +1,7 @@
 import io
 
 import numpy as np
+import pandas as pd
 
 import matplotlib.pyplot as plt
 
@@ -11,14 +12,9 @@ from fastapi.responses import (
 
 class ZScoreService:
 
-    # =====================================================
-    # CÁLCULO Z-SCORE
-    # =====================================================
-
-    def calcular_zscore(
+    def analisar_zscore(
         self,
-        df,
-        conta: str
+        df
     ):
 
         if df.empty:
@@ -29,25 +25,26 @@ class ZScoreService:
                 )
             }
 
-        # ==============================================
-        # MÉDIA
-        # ==============================================
-
         media = (
             df["valor"]
             .mean()
         )
-
-        # ==============================================
-        # DESVIO PADRÃO
-        # ==============================================
 
         desvio_padrao = (
             df["valor"]
             .std()
         )
 
-        if desvio_padrao == 0:
+        if (
+
+            pd.isna(
+                desvio_padrao
+            )
+
+            or
+
+            desvio_padrao == 0
+        ):
 
             return {
                 "erro": (
@@ -55,9 +52,7 @@ class ZScoreService:
                 )
             }
 
-        # ==============================================
-        # Z-SCORE
-        # ==============================================
+        df = df.copy()
 
         df["zscore"] = (
 
@@ -66,27 +61,80 @@ class ZScoreService:
             / desvio_padrao
         )
 
-        # ==============================================
-        # SCORE ABSOLUTO
-        # ==============================================
-
         df["score_anomalia"] = (
-            np.abs(df["zscore"])
+            np.abs(
+                df["zscore"]
+            )
         )
-
-        # ==============================================
-        # ANOMALIA
-        # ==============================================
 
         df["anomalia"] = (
             df["score_anomalia"] > 2
         )
 
-        # ==============================================
-        # GRÁFICO
-        # ==============================================
+        return {
 
-        plt.figure(figsize=(12, 6))
+            "media":
+                float(media),
+
+            "desvio_padrao":
+                float(desvio_padrao),
+
+            "zscore_medio":
+                float(
+                    df["zscore"]
+                    .abs()
+                    .mean()
+                ),
+
+            "zscore_maximo":
+                float(
+                    df["zscore"]
+                    .abs()
+                    .max()
+                ),
+
+            "quantidade_anomalias":
+                int(
+                    df["anomalia"]
+                    .sum()
+                ),
+
+            "percentual_anomalias":
+                float(
+                    (
+                        df["anomalia"]
+                        .sum()
+
+                        /
+
+                        len(df)
+
+                    ) * 100
+                ),
+
+            "dados":
+                df.copy()
+        }
+
+    def grafico_zscore(
+        self,
+        df,
+        conta: str
+    ):
+
+        resultado = (
+            self.analisar_zscore(df)
+        )
+
+        if "erro" in resultado:
+
+            return resultado
+
+        df = resultado["dados"]
+
+        plt.figure(
+            figsize=(12, 6)
+        )
 
         cores = df["anomalia"].map({
             True: "red",

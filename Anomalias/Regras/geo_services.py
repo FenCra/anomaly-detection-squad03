@@ -1,14 +1,5 @@
-# =========================================================
-# services/anomalias_localizacao_service.py
-# =========================================================
-
-import io
-
 import pandas as pd
 import numpy as np
-
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 from math import (
     radians,
@@ -18,23 +9,10 @@ from math import (
     atan2
 )
 
-from fastapi.responses import (
-    StreamingResponse
-)
-
 
 class GeoServices:
 
-    def __init__(self):
-
-        sns.set_theme(
-            style="whitegrid"
-        )
-
-    # =====================================================
-    # HAVERSINE
-    # =====================================================
-
+    
     def haversine(
         self,
         lat1,
@@ -57,11 +35,21 @@ class GeoServices:
 
             sin(dlat / 2) ** 2
 
-            + cos(radians(lat1))
+            +
 
-            * cos(radians(lat2))
+            cos(
+                radians(lat1)
+            )
 
-            * sin(dlon / 2) ** 2
+            *
+
+            cos(
+                radians(lat2)
+            )
+
+            *
+
+            sin(dlon / 2) ** 2
         )
 
         c = 2 * atan2(
@@ -75,10 +63,9 @@ class GeoServices:
     # DISTÂNCIA
     # =====================================================
 
-    def geo_distancia(
+    def analisar_distancia(
         self,
-        df,
-        conta: str
+        df
     ):
 
         df = df.dropna()
@@ -86,8 +73,11 @@ class GeoServices:
         if len(df) < 3:
 
             return {
-                "erro": "Poucas transações"
+                "erro":
+                "Poucas transações"
             }
+
+        df = df.copy()
 
         lat_media = (
             df["latitude"]
@@ -104,74 +94,80 @@ class GeoServices:
             lambda row:
 
             self.haversine(
+
                 lat_media,
+
                 lon_media,
+
                 row["latitude"],
+
                 row["longitude"]
             ),
 
             axis=1
         )
 
-        df["score"] = (
-
+        distancia_max = (
             df["distancia"]
-
-            / df["distancia"].max()
+            .max()
         )
 
-        fig, ax = plt.subplots(
-            figsize=(12, 6)
-        )
+        if distancia_max == 0:
 
-        scatter = ax.scatter(
+            df["score"] = 0
 
-            range(len(df)),
+        else:
 
-            df["distancia"],
+            df["score"] = (
 
-            c=df["score"],
+                df["distancia"]
 
-            cmap="coolwarm"
-        )
+                /
 
-        ax.set_title(
-            f"Distância Geográfica - Conta {conta}"
-        )
+                distancia_max
+            )
 
-        cbar = plt.colorbar(
-            scatter
-        )
+        return {
 
-        cbar.set_label(
-            "Score"
-        )
+            "distancia_media":
 
-        buf = io.BytesIO()
+                float(
+                    df["distancia"]
+                    .mean()
+                ),
 
-        fig.savefig(
-            buf,
-            format="png",
-            dpi=300
-        )
+            "distancia_maxima":
 
-        buf.seek(0)
+                float(
+                    df["distancia"]
+                    .max()
+                ),
 
-        plt.close(fig)
+            "distancia_minima":
 
-        return StreamingResponse(
-            buf,
-            media_type="image/png"
-        )
+                float(
+                    df["distancia"]
+                    .min()
+                ),
+
+            "score_medio":
+
+                float(
+                    df["score"]
+                    .mean()
+                ),
+
+            "dados":
+                df
+        }
 
     # =====================================================
     # GEO IP
     # =====================================================
 
-    def geo_ip(
+    def analisar_ip(
         self,
-        df,
-        conta: str
+        df
     ):
 
         df = df.dropna(
@@ -181,8 +177,11 @@ class GeoServices:
         if len(df) < 2:
 
             return {
-                "erro": "Poucas transações"
+                "erro":
+                "Poucas transações"
             }
+
+        df = df.copy()
 
         df["rede"] = (
 
@@ -246,63 +245,51 @@ class GeoServices:
                 )
             )
 
-        fig, ax = plt.subplots(
-            figsize=(12, 6)
-        )
+        return {
 
-        scatter = ax.scatter(
+            "quantidade_redes":
 
-            range(len(df)),
+                int(
+                    df["rede"]
+                    .nunique()
+                ),
 
-            df["score_normalizado"],
+            "rede_predominante":
 
-            c=df["score_normalizado"],
+                (
+                    df["rede"]
+                    .mode()[0]
+                ),
 
-            cmap="coolwarm"
-        )
+            "score_medio":
 
-        ax.set_title(
-            f"Anomalia de IP - Conta {conta}"
-        )
+                float(
+                    df["score_normalizado"]
+                    .mean()
+                ),
 
-        cbar = plt.colorbar(
-            scatter,
-            ax=ax
-        )
+            "score_maximo":
 
-        cbar.set_label(
-            "Score de Anomalia"
-        )
+                float(
+                    df["score_normalizado"]
+                    .max()
+                ),
 
-        buf = io.BytesIO()
-
-        fig.savefig(
-            buf,
-            format="png",
-            bbox_inches="tight",
-            dpi=300
-        )
-
-        buf.seek(0)
-
-        plt.close(fig)
-
-        return StreamingResponse(
-            buf,
-            media_type="image/png"
-        )
+            "dados":
+                df
+        }
 
     # =====================================================
     # GEO VELOCIDADE
     # =====================================================
 
-    def geo_velocidade(
+    def analisar_velocidade(
         self,
-        df,
-        conta: str
+        df
     ):
 
         df = df.dropna(
+
             subset=[
                 "latitude",
                 "longitude",
@@ -318,6 +305,8 @@ class GeoServices:
                     "A conta precisa ter pelo menos 2 transações"
                 )
             }
+
+        df = df.copy()
 
         df["datetime"] = pd.to_datetime(
 
@@ -345,10 +334,15 @@ class GeoServices:
             lambda row:
 
             self.haversine(
+
                 row["lat_ant"],
+
                 row["lon_ant"],
+
                 row["latitude"],
+
                 row["longitude"]
+
             )
 
             if pd.notnull(
@@ -385,7 +379,9 @@ class GeoServices:
 
             df["distancia_km"]
 
-            / df["tempo_horas"]
+            /
+
+            df["tempo_horas"]
         )
 
         df["velocidade"] = (
@@ -412,57 +408,44 @@ class GeoServices:
         else:
 
             df["score"] = (
+
                 df["velocidade"]
-                / vel_max
+
+                /
+
+                vel_max
             )
 
-        fig, ax = plt.subplots(
-            figsize=(12, 6)
-        )
+        return {
 
-        scatter = ax.scatter(
+            "velocidade_media":
 
-            range(len(df)),
+                float(
+                    df["velocidade"]
+                    .mean()
+                ),
 
-            df["velocidade"],
+            "velocidade_maxima":
 
-            c=df["score"],
+                float(
+                    df["velocidade"]
+                    .max()
+                ),
 
-            cmap="coolwarm"
-        )
+            "velocidade_minima":
 
-        ax.axhline(
-            900,
-            linestyle="--"
-        )
+                float(
+                    df["velocidade"]
+                    .min()
+                ),
 
-        ax.set_title(
-            f"Velocidade Geográfica - Conta {conta}"
-        )
+            "score_medio":
 
-        cbar = plt.colorbar(
-            scatter,
-            ax=ax
-        )
+                float(
+                    df["score"]
+                    .mean()
+                ),
 
-        cbar.set_label(
-            "Score de Anomalia"
-        )
-
-        buf = io.BytesIO()
-
-        fig.savefig(
-            buf,
-            format="png",
-            bbox_inches="tight",
-            dpi=300
-        )
-
-        buf.seek(0)
-
-        plt.close(fig)
-
-        return StreamingResponse(
-            buf,
-            media_type="image/png"
-        )
+            "dados":
+                df
+        }

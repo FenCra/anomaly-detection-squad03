@@ -61,6 +61,8 @@ class TransacaoRepository:
        return {
         "erro": "Transação não encontrada"
         }
+    
+
 
     def get_contas(self):
 
@@ -148,152 +150,149 @@ class TransacaoRepository:
         finally:
             conn.close()
 
-    # =========================================================
-# UPDATE STATUS FRAUDE
-# =========================================================
+    def update_status_fraude(
+        self,
+        id: int,
+        is_fraude: bool
+    ):
 
-def update_status_fraude(
-    self,
-    id: int,
-    is_fraude: bool
-):
+        conn = get_connection()
 
-    conn = get_connection()
+        cursor = conn.cursor()
 
-    cursor = conn.cursor()
+        try:
 
-    try:
-
-        cursor.execute(
-            """
-            UPDATE transacoes
-            SET is_fraude = ?
-            WHERE id = ?
-            """,
-            (
-                int(is_fraude),
-                id
+            cursor.execute(
+                """
+                UPDATE transacoes
+                SET is_fraude = ?
+                WHERE id = ?
+                """,
+                (
+                    int(is_fraude),
+                    id
+                )
             )
-        )
 
-        conn.commit()
+            conn.commit()
 
-        return {
-            "mensagem":
-            "Status de fraude atualizado com sucesso"
-        }
+            return {
+                "mensagem":
+                "Status de fraude atualizado com sucesso"
+            }
 
-    except Exception as e:
+        except Exception as e:
 
-        conn.rollback()
+            conn.rollback()
 
-        return {
-            "erro": str(e)
-        }
+            return {
+                "erro": str(e)
+            }
 
-    finally:
+        finally:
 
-        conn.close()
+            conn.close()
 
 
-def delete_transacao(
-    self,
-    id: int
-):
+    def delete_transacao(
+        self,
+        id: int
+    ):
 
-    conn = get_connection()
+        conn = get_connection()
 
-    cursor = conn.cursor()
+        cursor = conn.cursor()
 
-    try:
+        try:
+
+            cursor.execute(
+                """
+                DELETE FROM transacoes
+                WHERE id = ?
+                """,
+                (id,)
+            )
+
+            conn.commit()
+
+            return {
+                "mensagem":
+                "Transação deletada com sucesso"
+            }
+
+        except Exception as e:
+
+            conn.rollback()
+
+            return {
+                "erro": str(e)
+            }
+
+        finally:
+
+            conn.close()
+
+
+    def get_cidades(self):
+
+        conn = get_connection()
+
+        cursor = conn.cursor()
 
         cursor.execute(
             """
-            DELETE FROM transacoes
-            WHERE id = ?
-            """,
-            (id,)
+            SELECT DISTINCT cidade
+            FROM transacoes
+            WHERE cidade IS NOT NULL
+            ORDER BY cidade
+            """
         )
 
-        conn.commit()
-
-        return {
-            "mensagem":
-            "Transação deletada com sucesso"
-        }
-
-    except Exception as e:
-
-        conn.rollback()
-
-        return {
-            "erro": str(e)
-        }
-
-    finally:
+        cidades = [
+            row[0]
+            for row in cursor.fetchall()
+        ]
 
         conn.close()
 
-
-def get_cidades(self):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT DISTINCT cidade
-        FROM transacoes
-        WHERE cidade IS NOT NULL
-        ORDER BY cidade
-        """
-    )
-
-    cidades = [
-        row[0]
-        for row in cursor.fetchall()
-    ]
-
-    conn.close()
-
-    return {
-        "total": len(cidades),
-        "cidades": cidades
-    }
-    
-def dashboard_metrics(self):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT
-            COUNT(*) as total_transacoes,
-            SUM(valor) as total_movimentado,
-            SUM(
-                CASE
-                    WHEN is_fraude = 1
-                    THEN 1
-                    ELSE 0
-                END
-            ) as total_fraudes
-        FROM transacoes
-    """)
-
-    row = cursor.fetchone()
-
-    conn.close()
-
-    return {
-        "total_transacoes": row[0],
-        "total_movimentado": float(row[1] or 0),
-        "total_fraudes": row[2]
-    }
+        return {
+            "total": len(cidades),
+            "cidades": cidades
+        }
 
 
-def query_transacoes(
+    def dashboard_metrics(self):
+
+        conn = get_connection()
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                COUNT(*) as total_transacoes,
+                SUM(valor) as total_movimentado,
+                SUM(
+                    CASE
+                        WHEN is_fraude = 1
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as total_fraudes
+            FROM transacoes
+        """)
+
+        row = cursor.fetchone()
+
+        conn.close()
+
+        return {
+            "total_transacoes": row[0],
+            "total_movimentado": float(row[1] or 0),
+            "total_fraudes": row[2]
+        }
+
+
+    def query_transacoes(
         self,
         categoria=None,
         cidade=None,
@@ -346,7 +345,10 @@ def query_transacoes(
 
         cursor.execute(query, params)
 
-        colunas = [col[0] for col in cursor.description]
+        colunas = [
+            col[0]
+            for col in cursor.description
+        ]
 
         dados = [
             dict(zip(colunas, row))
@@ -359,10 +361,9 @@ def query_transacoes(
             "total": len(dados),
             "dados": dados
         }
-    
 
 
-def buscar_valores_por_conta(
+    def buscar_valores_por_conta(
         self,
         conta: str
     ):
@@ -390,8 +391,7 @@ def buscar_valores_por_conta(
         return df
 
 
-
-def buscar_localizacao_por_conta(
+    def buscar_localizacao_por_conta(
         self,
         conta: str
     ):
@@ -417,12 +417,7 @@ def buscar_localizacao_por_conta(
         return df
 
 
-
-    # =====================================================
-    # GEO IP
-    # =====================================================
-
-def buscar_ips_por_conta(
+    def buscar_ips_por_conta(
         self,
         conta: str
     ):
@@ -430,7 +425,8 @@ def buscar_ips_por_conta(
         conn = get_connection()
 
         query = """
-            SELECT ip_origem
+            SELECT
+                ip_origem
             FROM transacoes
             WHERE conta = ?
         """
@@ -445,11 +441,8 @@ def buscar_ips_por_conta(
 
         return df
 
-    # =====================================================
-    # GEO VELOCIDADE
-    # =====================================================
 
-def buscar_velocidade_geografica(
+    def buscar_velocidade_geografica(
         self,
         conta: str
     ):
@@ -477,11 +470,10 @@ def buscar_velocidade_geografica(
 
         return df
 
-    # =====================================================
-    # ESTATÍSTICAS
-    # =====================================================
 
-def buscar_cidades_mais_anomalas(self):
+    def buscar_cidades_mais_anomalas(
+        self
+    ):
 
         conn = get_connection()
 
@@ -503,7 +495,10 @@ def buscar_cidades_mais_anomalas(self):
 
         return dados
 
-def buscar_numero_de_fraudes(self):
+
+    def buscar_numero_de_fraudes(
+        self
+    ):
 
         conn = get_connection()
 
@@ -525,7 +520,10 @@ def buscar_numero_de_fraudes(self):
 
         return dados
 
-def buscar_fraudes_por_tipo(self):
+
+    def buscar_fraudes_por_tipo(
+        self
+    ):
 
         conn = get_connection()
 
@@ -547,7 +545,10 @@ def buscar_fraudes_por_tipo(self):
 
         return dados
 
-def buscar_horario_fraudes(self):
+
+    def buscar_horario_fraudes(
+        self
+    ):
 
         conn = get_connection()
 
@@ -569,7 +570,10 @@ def buscar_horario_fraudes(self):
 
         return dados
 
-def buscar_numero_de_tentativas(self):
+
+    def buscar_numero_de_tentativas(
+        self
+    ):
 
         conn = get_connection()
 
@@ -591,85 +595,3 @@ def buscar_numero_de_tentativas(self):
         conn.close()
 
         return dados
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  

@@ -6,7 +6,7 @@ from Models.Transacao_model import Transacao
 from Services.anomalias_services import (
     AnomaliasService
 )
-from Services.anomalias_estatistica_services import (
+from Regras.anomalias_estatistica_services import (
     AnomaliasEstatisticaService)
 
 from Services.transacao_services import (
@@ -17,22 +17,24 @@ from Services.localizacao_service import (
     LocalizacaoService
 )
 
-from Services.gaussiana_service import (
+from Regras.gaussiana_service import (
     GaussianaService
 )
 
-from Services.zscore_service import (
+from Regras.zscore_service import (
     ZScoreService
 )
+
+from Services.perfil_service import (
+    PerfilService
+)
+
 
 router = APIRouter(
     prefix="/api/v1",
     tags=["Transações"]
 )
 
-# =========================================================
-# INSTÂNCIAS
-# =========================================================
 
 transacao_service = TransacaoService()
 
@@ -40,14 +42,14 @@ localizacao_service = LocalizacaoService()
 
 anomalias_service = AnomaliasService()
 
-estatistica_service = (AnomaliasEstatisticaService())
+estatistica_service = AnomaliasEstatisticaService()
   
 gaussiana_service = GaussianaService()
 
 zscore_service = ZScoreService()
 
+perfil_service = PerfilService()
 
-#criar o delete. update julgamento 
 
 @router.get("/transacoes")
 def listar_transacoes():
@@ -81,7 +83,6 @@ def criar_transacao(
     )
 
 
-
 @router.put("/transacoes/{id}/fraude")
 def atualizar_status_fraude(
     id: int,
@@ -96,10 +97,6 @@ def atualizar_status_fraude(
         )
     )
 
-
-# =========================================================
-# DELETAR TRANSAÇÃO
-# =========================================================
 
 @router.delete("/transacoes/{id}")
 def deletar_transacao(
@@ -128,11 +125,6 @@ def listar_cidades():
         .listar_cidades()
     )
 
-
-
-# =========================================================
-# FILTROS
-# =========================================================
 
 @router.get("/transacoes/search")
 def buscar_transacoes(
@@ -174,6 +166,20 @@ def buscar_transacoes(
         data_fim=data_fim
     )
 
+
+@router.get("transacoes/perfil/{conta}")
+def perfil_comportamental(
+    conta: str
+):
+
+    return (
+        perfil_service
+        .perfil_comportamental(
+            conta
+        )
+    )
+
+
 #errado
 
 @router.get("/zscore/{conta}")
@@ -196,8 +202,6 @@ def gaussiana(
         anomalias_service
         .gaussiana_por_conta(conta)
     )
-
-
 
     
 
@@ -240,6 +244,18 @@ def geo_velocidade(
         .geo_velocidade(conta)
     )
 
+
+@router.get("/perfil/{conta}")
+def perfil_comportamental(
+    conta: str
+):
+    return (
+
+        perfil_service
+        .perfil_comportamental(
+            conta
+        )
+    )
 
 
 # =========================================================

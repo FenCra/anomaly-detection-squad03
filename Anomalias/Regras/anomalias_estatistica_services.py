@@ -261,9 +261,7 @@ class AnomaliasEstatisticaService:
             media_type="image/png"
         )
 
-    # =====================================================
-    # NÚMERO DE TENTATIVAS
-    # =====================================================
+    
 
     def numero_de_tentativas(self):
 

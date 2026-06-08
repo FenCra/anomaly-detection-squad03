@@ -2,7 +2,7 @@ from Repository.transacao_repository import (
     TransacaoRepository
 )
 
-from Services.anomalias_estatistica_services import (
+from Regras.anomalias_estatistica_services import (
     AnomaliasEstatisticaService
 )
 

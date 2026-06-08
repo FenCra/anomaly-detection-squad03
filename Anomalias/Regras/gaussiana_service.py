@@ -1,10 +1,14 @@
 import io
+
 import numpy as np
 import pandas as pd
+
 import matplotlib.pyplot as plt
+
 from fastapi.responses import (
     StreamingResponse
 )
+
 
 class GaussianaService:
 
@@ -12,10 +16,9 @@ class GaussianaService:
     # DISTRIBUIÇÃO GAUSSIANA
     # =====================================================
 
-    def calcular_gaussiana(
+    def analisar_gaussiana(
         self,
-        df,
-        conta: str
+        df
     ):
 
         if df.empty:
@@ -26,9 +29,7 @@ class GaussianaService:
                 )
             }
 
-        # ==============================================
-        # LIMPEZA
-        # ==============================================
+        df = df.copy()
 
         df["valor"] = pd.to_numeric(
             df["valor"],
@@ -47,31 +48,28 @@ class GaussianaService:
                 )
             }
 
-        # ==============================================
-        # MÉDIA
-        # ==============================================
-
         mu = (
             df["valor"]
             .mean()
         )
-
-        # ==============================================
-        # DESVIO PADRÃO
-        # ==============================================
 
         sigma = (
             df["valor"]
             .std()
         )
 
-        if sigma == 0:
+        if (
+
+            pd.isna(
+                sigma
+            )
+
+            or
+
+            sigma == 0
+        ):
 
             sigma = 1
-
-        # ==============================================
-        # LOG PROBABILIDADE
-        # ==============================================
 
         df["log_prob"] = (
 
@@ -81,12 +79,12 @@ class GaussianaService:
                 ) ** 2
             )
 
-            / (2 * sigma ** 2)
-        )
+            /
 
-        # ==============================================
-        # SCORE DE FRAUDE
-        # ==============================================
+            (
+                2 * sigma ** 2
+            )
+        )
 
         max_prob = (
             df["log_prob"]
@@ -119,13 +117,60 @@ class GaussianaService:
                 )
             )
 
-        # ==============================================
-        # GRÁFICO
-        # ==============================================
+        return {
 
-        X = np.arange(len(df))
+            "media":
+                float(mu),
 
-        Y = df["valor"].to_numpy()
+            "desvio_padrao":
+                float(sigma),
+
+            "score_medio":
+                float(
+                    df["score_fraude"]
+                    .mean()
+                ),
+
+            "score_maximo":
+                float(
+                    df["score_fraude"]
+                    .max()
+                ),
+
+            "score_minimo":
+                float(
+                    df["score_fraude"]
+                    .min()
+                ),
+
+            "dados":
+                df.copy()
+        }
+
+    def grafico_gaussiana(
+        self,
+        df,
+        conta: str
+    ):
+
+        resultado = (
+            self.analisar_gaussiana(df)
+        )
+
+        if "erro" in resultado:
+
+            return resultado
+
+        df = resultado["dados"]
+
+        X = np.arange(
+            len(df)
+        )
+
+        Y = (
+            df["valor"]
+            .to_numpy()
+        )
 
         plt.style.use(
             "seaborn-v0_8-whitegrid"
@@ -147,7 +192,7 @@ class GaussianaService:
         )
 
         ax.axhline(
-            mu,
+            resultado["media"],
             linestyle="--"
         )
 

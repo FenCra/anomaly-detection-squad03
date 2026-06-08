@@ -2,11 +2,11 @@ from Repository.transacao_repository import (
     TransacaoRepository
 )
 
-from Services.zscore_service import (
+from Regras.zscore_service import (
     ZScoreService
 )
 
-from Services.gaussiana_service import (
+from Regras.gaussiana_service import (
     GaussianaService
 )
 
@@ -47,7 +47,7 @@ class AnomaliasService:
         return (
 
             self.zscore_service
-            .calcular_zscore(
+            .grafico_zscore(
                 df,
                 conta
             )
