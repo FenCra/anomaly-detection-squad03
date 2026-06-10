@@ -35,3 +35,28 @@ class PerfilRepository:
         conn.close()
 
         return df
+
+
+
+    def buscar_ultima_transacao( self, conta: str):
+       conn = get_connection()
+
+       query = """
+           SELECT TOP 1 *
+           FROM transacoes
+           WHERE conta = ?
+           ORDER BY data DESC, hora DESC
+
+        """
+
+       df = pd.read_sql(
+            query,
+            conn,
+            params=[conta]
+        )
+
+       conn.close()
+
+       return df
+    
+
