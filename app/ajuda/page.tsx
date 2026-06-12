@@ -7,19 +7,19 @@ export default function Ajuda() {
   const dicas = [
     {
       titulo: "O Lightbox Interativo",
-      texto: "Os gráficos exportados não são imagens estáticas, eles contêm muitos micro-dados. Dentro do Modal da Transação, na aba 'Motor de ML', clique em qualquer gráfico gerado para abri-lo em Tela Cheia Escurecida. Use a tecla Esc para fechar."
+      texto: "Os gráficos exportados não são imagens estáticas, eles contêm micro-dados. Dentro do Modal da Transação, na aba 'Motor de ML', basta clicar em qualquer gráfico gerado para abri-lo em Tela Cheia Escurecida. O uso da tecla Esc fecha a visualização."
     },
     {
       titulo: "Filtros Combinados",
-      texto: "Na tabela de Transações, você pode pesquisar por uma cidade ou estado usando o campo de texto enquanto mantém uma Conta específica selecionada no dropdown. O cruzamento de dados acontece instantaneamente no front-end."
+      texto: "Na tabela de Transações, é possível pesquisar por uma cidade ou estado usando o campo de texto enquanto se mantém uma Conta específica selecionada no seletor principal. O cruzamento de dados acontece instantaneamente na interface."
     },
     {
       titulo: "Identificação Rápida de Risco",
-      texto: "Transações reprovadas pelo modelo Gaussiano ou de Z-Score recebem a badge de 'Anomalia' e são coloridas de vermelho. Sempre priorize auditar estas linhas primeiro durante o expediente."
+      texto: "Transações reprovadas pelo modelo Gaussiano ou de Z-Score recebem a marcação de 'Anomalia' e são destacadas com a cor vermelha. Recomenda-se priorizar a auditoria destas linhas primeiro durante o fluxo de trabalho."
     },
     {
       titulo: "Geolocalização Impossível",
-      texto: "Se nosso motor disparar um alerta de Geo-Distância, ele detectou que o mesmo cartão foi passado em locais fisicamente distantes num curto espaço de tempo (ex: RJ e NY em 5 minutos). Trate como fraude certa."
+      texto: "Se o sistema disparar um alerta de Geo-Distância, significa que o mesmo cartão foi passado em locais fisicamente distantes num curto espaço de tempo (ex: Rio de Janeiro e Nova York em 5 minutos). O cenário é tratado estatisticamente como fraude confirmada."
     }
   ]
 
@@ -49,17 +49,11 @@ export default function Ajuda() {
               <span className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
                 <HelpCircleIcon />
               </span>
-              <h1 className="text-3xl font-black tracking-tight">Manual e Ajuda</h1>
+              <h1 className="text-3xl font-black tracking-tight">Manual e Documentação</h1>
             </div>
             <p className="text-blue-100 text-lg max-w-3xl font-medium leading-relaxed">
-              Bem-vindo ao Sistema Inteligente de Detecção de Anomalias. Preparamos este manual com uma linguagem clara e direta para guiar você pelas funcionalidades e análises de segurança do nosso banco.
+              Sistema Inteligente de Detecção de Anomalias. Este manual apresenta de forma descritiva e direta as orientações necessárias sobre as funcionalidades operacionais e os parâmetros de segurança aplicados às transações financeiras.
             </p>
-          </div>
-          <div className="hidden md:block">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 text-center">
-              <p className="text-xs text-blue-200 uppercase font-bold tracking-wider mb-1">Versão do Sistema</p>
-              <p className="text-xl font-black">v2.0.0-stable</p>
-            </div>
           </div>
         </div>
         {/* Abstract Background Decoration */}
@@ -82,11 +76,11 @@ export default function Ajuda() {
               </a>
               <a href="#seu-papel" className="flex items-center gap-3 p-3 rounded-xl hover:bg-orange-50 text-gray-700 hover:text-orange-700 transition-all font-semibold text-sm group">
                 <span className="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors"><BookOpenIcon /></span> 
-                2. O Seu Papel
+                2. O Papel do Analista
               </a>
               <a href="#dashboard" className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-gray-700 hover:text-bb-blue transition-all font-semibold text-sm group">
                 <span className="w-5 h-5 text-gray-400 group-hover:text-bb-blue transition-colors"><ActivityIcon /></span> 
-                3. Visão Geral (Painel)
+                3. Visão Geral do Painel
               </a>
               <a href="#transacoes" className="flex items-center gap-3 p-3 rounded-xl hover:bg-green-50 text-gray-700 hover:text-green-700 transition-all font-semibold text-sm group">
                 <span className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors"><CreditCardIcon /></span> 
@@ -94,16 +88,16 @@ export default function Ajuda() {
               </a>
               <a href="#ml" className="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition-all font-semibold text-sm group">
                 <span className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors"><ShieldAlertIcon /></span> 
-                5. Como o Sistema Analisa
+                5. Análise Estatística
               </a>
             </nav>
           </div>
           
           <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 text-sm text-gray-500">
             <p className="font-medium text-gray-700 mb-1 flex items-center gap-2">
-              <BookOpenIcon /> Precisa de suporte técnico?
+              <BookOpenIcon /> Suporte Técnico
             </p>
-            Entre em contato com a equipe de desenvolvimento (Squad 03) para relatar instabilidades na página ou realizar a manutenção técnica dos servidores.
+            É recomendado relatar instabilidades na interface ou solicitar manutenção técnica diretamente aos desenvolvedores responsáveis (Squad 03).
           </div>
         </div>
 
@@ -116,38 +110,38 @@ export default function Ajuda() {
               1. Introdução ao Sistema
             </h2>
             <div className="space-y-5 text-gray-600 text-base leading-relaxed">
-              <p>Este sistema foi criado para ajudar a proteger as contas dos nossos clientes e garantir a segurança do banco contra fraudes financeiras. Ele funciona como uma ferramenta de monitoramento contínuo: todos os dias, milhares de transações são realizadas com cartões de crédito, e seria impossível revisar cada uma delas manualmente.</p>
-              <p>É aqui que o nosso sistema entra. Ele analisa cada compra registrada em tempo real, cruzando os dados e aplicando métodos estatísticos para identificar se há algo fora do normal, como um cartão que pode ter sido roubado ou clonado, poupando tempo valioso de auditoria.</p>
+              <p>A finalidade da plataforma é auxiliar na proteção das contas financeiras e na prevenção de fraudes. O software opera como uma ferramenta de monitoramento contínuo: frente a milhares de transações registradas diariamente, a revisão manual de cada operação torna-se inviável e suscetível a falhas.</p>
+              <p>Para solucionar essa volumetria, a aplicação processa as transações em tempo real. Os dados recebidos são cruzados com históricos e perfis de consumo, aplicando modelos estatísticos para identificar comportamentos atípicos. Esse processo otimiza a auditoria operacional, destacando apenas os casos que apresentam real probabilidade de fraude ou clonagem.</p>
             </div>
           </section>
 
           <section id="seu-papel" className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm shadow-gray-200/40 scroll-mt-8">
             <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 mb-6">
               <span className="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center"><BookOpenIcon /></span> 
-              2. O Seu Papel: Analista de Prevenção
+              2. O Papel do Analista de Prevenção
             </h2>
             <div className="space-y-5 text-gray-600 text-base leading-relaxed">
-              <p>O sistema é muito inteligente, mas <strong>ele não bloqueia as transações sozinho</strong>. Nós evitamos fazer bloqueios automáticos porque uma compra fora do padrão pode ser apenas um cliente que está viajando ou fazendo uma compra incomum, porém legítima. Um bloqueio incorreto gera um grande transtorno ao cliente.</p>
-              <p>Em vez de bloquear, o sistema apenas sinaliza as compras que ele achou suspeitas com um alerta visual em vermelho. O seu papel como Analista de Prevenção é olhar para essas transações sinalizadas, conferir os detalhes (como o local da compra, o horário e o valor) e dar o veredito final. O sistema aguardará a sua resposta para prosseguir, exigindo que você escolha entre aprovar a transação ou confirmar que de fato é uma fraude.</p>
+              <p>O software não executa o bloqueio de transações de forma automatizada. A ausência de bloqueios autônomos tem o objetivo de evitar falsos positivos — ou seja, cenários nos quais compras legítimas, realizadas durante viagens ou fora da rotina, acabem retidas. Intervenções sistêmicas incorretas geram desgastes severos no relacionamento com o cliente.</p>
+              <p>O fluxo de trabalho baseia-se na sinalização visual das movimentações classificadas como suspeitas. Cabe ao Analista de Prevenção realizar a vistoria dos dados marcados, revisando informações cruciais como o local da operação, o horário e o valor faturado. O sistema permanecerá aguardando a deliberação do analista, que detém a responsabilidade final de confirmar a incidência de fraude ou emitir a aprovação da compra avaliada.</p>
             </div>
           </section>
 
           <section id="dashboard" className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm shadow-gray-200/40 scroll-mt-8">
             <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 mb-6">
               <span className="w-8 h-8 rounded-full bg-blue-50 text-bb-blue flex items-center justify-center"><ActivityIcon /></span> 
-              3. Visão Geral (Painel Inicial)
+              3. Visão Geral do Painel
             </h2>
             <div className="space-y-5 text-gray-600 text-base leading-relaxed">
-              <p>A aba de Visão Geral (Dashboard) é o painel de instrumentos do seu ambiente de trabalho. Ela reúne os principais indicadores e os apresenta de forma clara para que você compreenda a situação atual do sistema com apenas um olhar.</p>
+              <p>O Painel Inicial (Dashboard) funciona como o centro de monitoramento gerencial do ambiente. Ele agrupa os principais indicadores operacionais e os dispõe graficamente para fornecer um diagnóstico rápido da saúde do sistema.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                  <h4 className="font-bold text-gray-900 mb-2">Totais e Comparações</h4>
-                  <p className="text-sm">Os painéis grandes mostram exatamente quantas transações ocorreram no mês, o valor total movimentado e quantas fraudes foram contidas. Os percentuais ao lado indicam a diferença em relação ao mês anterior — por exemplo, uma diminuição no número de fraudes é um resultado positivo.</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Indicadores Principais</h4>
+                  <p className="text-sm">Os visores numéricos exibem o volume de transações processadas no mês atual, o capital total movimentado e a quantidade de fraudes detectadas. Os percentuais anexados demonstram a variação em relação ao mês anterior, servindo de métrica direta de desempenho.</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                  <h4 className="font-bold text-gray-900 mb-2">Gráficos Direcionais</h4>
-                  <p className="text-sm">Os gráficos coloridos servem para resumir informações, como os dias e horários em que as compras mais acontecem, ou qual é a faixa de valores mais comum nas transações. Para ler números exatos, basta repousar o ponteiro do mouse sobre os gráficos.</p>
+                  <h4 className="font-bold text-gray-900 mb-2">Representações Gráficas</h4>
+                  <p className="text-sm">Os gráficos sumarizam as informações da base de dados, ilustrando a distribuição de transações por horários e as faixas monetárias mais frequentes. O posicionamento do cursor sobre as áreas coloridas revela os quantitativos consolidados correspondentes.</p>
                 </div>
               </div>
             </div>
@@ -156,14 +150,14 @@ export default function Ajuda() {
           <section id="transacoes" className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm shadow-gray-200/40 scroll-mt-8">
             <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 mb-6">
               <span className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center"><CreditCardIcon /></span> 
-              4. Análise e Histórico de Transações
+              4. Análise de Transações
             </h2>
             <div className="space-y-5 text-gray-600 text-base leading-relaxed">
-              <p>A interface de Transações é a tabela onde todas as compras ficam registradas. Para não tornar o sistema lento, a tabela não mostra tudo de uma vez; ela divide as informações em várias páginas que você pode navegar facilmente.</p>
+              <p>A aba de Transações contém a tabela contínua de registros globais. O carregamento ocorre de forma fragmentada (paginação), mantendo o desempenho da interface independentemente do tamanho da base de dados.</p>
               <ul className="list-disc pl-5 space-y-3">
-                <li><strong>Filtros precisos:</strong> Você pode usar a busca ou os botões de filtro na parte superior para encontrar transações específicas. É possível, por exemplo, visualizar apenas as transações de uma cidade, de uma conta específica, ou separar as compras negadas das aprovadas.</li>
-                <li><strong>Alertas Visuais:</strong> Transações marcadas com uma borda avermelhada forte e com o selo de "Anomalia" 🔴 representam compras suspeitas identificadas pelo sistema. Elas exigem a sua avaliação prioritária.</li>
-                <li><strong>Ficha de Detalhes:</strong> Se você clicar em qualquer compra na tabela, abrirá uma tela de Detalhes (Modal). Nessa tela, estão todas as informações coletadas, como o local exato, a hora e o número de IP da internet usada pelo cliente.</li>
+                <li><strong>Mecanismos de Busca:</strong> A ferramenta permite realizar pesquisas granulares através dos parâmetros da barra superior. É viável isolar resultados por localidade, conta específica, datas ou por status final de aprovação.</li>
+                <li><strong>Sinalização Visual:</strong> Operações classificadas estatisticamente como suspeitas recebem uma marcação de borda avermelhada e um selo descritivo de anomalia. Esses itens exigem auditoria prioritária.</li>
+                <li><strong>Detalhamento Operacional:</strong> A seleção de qualquer registro da tabela expande um painel de detalhes (Modal). Este painel compila os atributos técnicos da solicitação, englobando a geolocalização do pagamento, fuso horário e o endereço de rede (IP).</li>
               </ul>
             </div>
           </section>
@@ -172,27 +166,27 @@ export default function Ajuda() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100 rounded-bl-full -z-10 opacity-30 pointer-events-none"></div>
             <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3 mb-6">
               <span className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><ShieldAlertIcon /></span> 
-              5. Como o Sistema Analisa (Inteligência)
+              5. Análise Estatística (Identificação de Padrões)
             </h2>
             <div className="space-y-5 text-gray-600 text-base leading-relaxed">
-              <p>Nós não programamos regras fixas, como "barrar compras acima de mil reais", porque isso limitaria os clientes com maior poder de compra. O sistema utiliza análises estatísticas para aprender os costumes diários de cada usuário, e então, alerta quando percebe um desvio muito agressivo no comportamento.</p>
+              <p>A arquitetura evita a imposição de tetos monetários fixos, dado que limites rígidos impactariam negativamente os usuários com maior capacidade financeira. Em vez disso, a modelagem utiliza análise estatística contínua para mapear o padrão financeiro de cada conta de forma individualizada, sinalizando apenas os desvios matemáticos expressivos.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 <div className="border border-purple-100 bg-white rounded-xl p-5 shadow-sm">
-                  <h4 className="font-black text-purple-800 text-lg mb-2">Gasto fora do padrão (Z-Score)</h4>
-                  <p className="text-sm">O sistema memoriza a média de valores que o cliente costuma gastar. Se a transação atual tiver um valor exageradamente alto em comparação a todo o histórico de vida dele, o sistema emite um alerta de fraude por desvio financeiro.</p>
+                  <h4 className="font-black text-purple-800 text-lg mb-2">Análise Z-Score</h4>
+                  <p className="text-sm">O modelo afere a média de valores movimentados pela conta. Se uma transação apresentar um montante excessivamente discrepante em relação à rotina estabelecida por aquele cliente específico, o cálculo emite um alerta de desvio estatístico.</p>
                 </div>
                 <div className="border border-purple-100 bg-white rounded-xl p-5 shadow-sm">
-                  <h4 className="font-black text-purple-800 text-lg mb-2">Padrão de rotina (Gaussiana)</h4>
-                  <p className="text-sm">A maioria das nossas compras diárias se concentra numa mesma faixa de valor. Essa análise gera uma curva gráfica onde o "pico" representa os gastos normais. As compras que ficarem nas extremidades da curva serão sinalizadas como muito suspeitas.</p>
+                  <h4 className="font-black text-purple-800 text-lg mb-2">Curva Gaussiana</h4>
+                  <p className="text-sm">Os pagamentos cotidianos de um usuário mantêm uma certa previsibilidade. A modelagem concentra esses pagamentos comuns no centro de um gráfico de distribuição. Transações isoladas que caem nas extremidades desta distribuição são tratadas pelo algoritmo como ocorrências raras e potencialmente fraudulentas.</p>
                 </div>
                 <div className="border border-purple-100 bg-white rounded-xl p-5 shadow-sm">
-                  <h4 className="font-black text-purple-800 text-lg mb-2">Distância física impossível</h4>
-                  <p className="text-sm">O sistema cruza as localizações de compras seguidas no mesmo cartão. Se houver um uso presencial em São Paulo e, dez minutos depois, outra compra presencial no Japão, a ferramenta detecta que a viagem física seria impossível, tratando como clonagem evidente.</p>
+                  <h4 className="font-black text-purple-800 text-lg mb-2">Parâmetro de Geo-Distância</h4>
+                  <p className="text-sm">O sistema monitora o tempo e o deslocamento geográfico (Latitude e Longitude) entre usos seguidos de um mesmo cartão. Autorizações físicas provenientes de cidades distantes em um intervalo de tempo insuficiente para o deslocamento humano geram sinalização imediata de clonagem.</p>
                 </div>
                 <div className="border border-purple-100 bg-white rounded-xl p-5 shadow-sm">
-                  <h4 className="font-black text-purple-800 text-lg mb-2">Análise de redes de internet (IP)</h4>
-                  <p className="text-sm">Toda vez que uma solicitação bancária é feita na internet, ela deixa um rastro chamado endereço IP. O sistema mapeia os endereços IP que o cliente usa na rotina. Se uma transação tentar aprovação a partir de uma rede em outro país sem aviso, ela gerará suspeita.</p>
+                  <h4 className="font-black text-purple-800 text-lg mb-2">Mapeamento de IP</h4>
+                  <p className="text-sm">Requisições processadas em ambiente digital contêm o endereço de origem da rede de internet (IP). A aplicação armazena os endereços rotineiramente utilizados. Caso uma requisição parta de rotas de rede internacionais sem registro prévio, a análise classificará o evento como possível acesso indevido.</p>
                 </div>
               </div>
 
@@ -207,7 +201,7 @@ export default function Ajuda() {
                     <span className="w-6 h-6 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center">
                       <ActivityIcon />
                     </span>
-                    <h4 className="font-bold text-purple-900">Dicas para Uso Diário</h4>
+                    <h4 className="font-bold text-purple-900">Dicas e Atalhos Operacionais</h4>
                   </div>
                   <div className="flex gap-1">
                     {dicas.map((_, i) => (
