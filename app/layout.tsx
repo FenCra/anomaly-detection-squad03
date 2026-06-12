@@ -21,8 +21,12 @@ export default function RootLayout({
           <div className="flex gap-6 text-white font-medium">
             <Link href="/ajuda" className="cursor-pointer hover:text-blue-200 transition-colors">Ajuda</Link>
           </div>
-          <div className="text-bb-yellow font-bold text-2xl tracking-tighter italic">
-            BB
+          <div className="flex items-center">
+            <img 
+              src="/icone_banco_do_brasil_amarelo.png" 
+              alt="Banco do Brasil" 
+              className="h-12 w-auto"
+            />
           </div>
         </header>
 
