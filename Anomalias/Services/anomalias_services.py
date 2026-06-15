@@ -73,7 +73,7 @@ class AnomaliasService:
         return (
 
             self.gaussiana_service
-            .calcular_gaussiana(
+            .grafico_gaussiana(
                 df,
                 conta
             )

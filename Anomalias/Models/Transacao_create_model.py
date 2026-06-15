@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from datetime import date, time
 from typing import Optional
 
-class Transacao(BaseModel):
-    id: int
+class TransacaoCreate(BaseModel):
+    
     valor: float
     data: date
     hora: time
@@ -20,5 +20,3 @@ class Transacao(BaseModel):
     estabelecimento: str
     tentativas: int
     ip_origem: str
-    is_fraude: bool
-    motivo: str

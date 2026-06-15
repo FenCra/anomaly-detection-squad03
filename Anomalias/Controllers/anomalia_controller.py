@@ -3,6 +3,9 @@ from fastapi import Query
 
 from Models.Transacao_model import Transacao
 
+from Models.Transacao_create_model import (
+    TransacaoCreate
+)
 from Services.anomalias_services import (
     AnomaliasService
 )
@@ -72,15 +75,14 @@ def buscar_transacao_por_conta(
         conta
     )
 
-
 @router.post("/transacoes")
 def criar_transacao(
-    transacao: Transacao
+    transacao: TransacaoCreate
 ):
-
     return transacao_service.criar_transacao(
         transacao
     )
+
 
 
 @router.put("/transacoes/{id}/fraude")

@@ -13,7 +13,7 @@ from fastapi.responses import (
 class GaussianaService:
 
     # =====================================================
-    # DISTRIBUIÇÃO GAUSSIANA
+    # ANÁLISE GAUSSIANA
     # =====================================================
 
     def analisar_gaussiana(
@@ -48,12 +48,12 @@ class GaussianaService:
                 )
             }
 
-        mu = (
+        media = (
             df["valor"]
             .mean()
         )
 
-        sigma = (
+        desvio_padrao = (
             df["valor"]
             .std()
         )
@@ -61,38 +61,66 @@ class GaussianaService:
         if (
 
             pd.isna(
-                sigma
+                desvio_padrao
             )
 
             or
 
-            sigma == 0
+            desvio_padrao == 0
         ):
 
-            sigma = 1
+            return {
+                "erro": (
+                    "Desvio padrão inválido"
+                )
+            }
 
-        df["log_prob"] = (
+        # =====================================================
+        # DENSIDADE GAUSSIANA
+        # =====================================================
+
+        df["probabilidade"] = (
+
+            1
+
+            /
+
+            (
+                desvio_padrao
+                * np.sqrt(
+                    2 * np.pi
+                )
+            )
+
+        ) * np.exp(
 
             -(
                 (
-                    df["valor"] - mu
+                    df["valor"]
+                    - media
                 ) ** 2
             )
 
             /
 
             (
-                2 * sigma ** 2
+                2
+                * desvio_padrao ** 2
             )
+
         )
 
+        # =====================================================
+        # SCORE DE FRAUDE
+        # =====================================================
+
         max_prob = (
-            df["log_prob"]
+            df["probabilidade"]
             .max()
         )
 
         min_prob = (
-            df["log_prob"]
+            df["probabilidade"]
             .min()
         )
 
@@ -106,7 +134,7 @@ class GaussianaService:
 
                 (
                     max_prob
-                    - df["log_prob"]
+                    - df["probabilidade"]
                 )
 
                 /
@@ -115,15 +143,25 @@ class GaussianaService:
                     max_prob
                     - min_prob
                 )
+
             )
+
+        # =====================================================
+        # CLASSIFICAÇÃO
+        # =====================================================
+
+        df["anomalia"] = (
+            df["score_fraude"]
+            > 0.90
+        )
 
         return {
 
             "media":
-                float(mu),
+                float(media),
 
             "desvio_padrao":
-                float(sigma),
+                float(desvio_padrao),
 
             "score_medio":
                 float(
@@ -143,9 +181,35 @@ class GaussianaService:
                     .min()
                 ),
 
+            "quantidade_anomalias":
+                int(
+                    df["anomalia"]
+                    .sum()
+                ),
+
+            "percentual_anomalias":
+                float(
+
+                    (
+                        df["anomalia"]
+                        .sum()
+
+                        /
+
+                        len(df)
+
+                    ) * 100
+
+                ),
+
             "dados":
                 df.copy()
+
         }
+
+    # =====================================================
+    # GRÁFICO
+    # =====================================================
 
     def grafico_gaussiana(
         self,
@@ -163,74 +227,82 @@ class GaussianaService:
 
         df = resultado["dados"]
 
-        X = np.arange(
-            len(df)
-        )
-
-        Y = (
-            df["valor"]
-            .to_numpy()
-        )
-
-        plt.style.use(
-            "seaborn-v0_8-whitegrid"
-        )
-
-        fig, ax = plt.subplots(
+        plt.figure(
             figsize=(12, 6)
         )
 
-        scatter = ax.scatter(
+        cores = df["anomalia"].map({
 
-            X,
+            True: "red",
 
-            Y,
+            False: "blue"
 
-            c=df["score_fraude"],
+        })
 
-            cmap="coolwarm"
+        plt.scatter(
+
+            range(
+                len(df)
+            ),
+
+            df["valor"],
+
+            c=cores,
+
+            s=50
+
         )
 
-        ax.axhline(
+        plt.axhline(
+
             resultado["media"],
-            linestyle="--"
+
+            linestyle="--",
+
+            color="black",
+
+            label="Média"
+
         )
 
-        ax.set_title(
+        plt.title(
             f"Distribuição Gaussiana - Conta {conta}"
         )
 
-        ax.set_xlabel(
+        plt.xlabel(
             "Transações"
         )
 
-        ax.set_ylabel(
+        plt.ylabel(
             "Valor"
         )
 
-        cbar = plt.colorbar(
-            scatter,
-            ax=ax
-        )
+        plt.grid(True)
 
-        cbar.set_label(
-            "Score de Fraude"
-        )
+        plt.legend()
 
         buf = io.BytesIO()
 
-        fig.savefig(
+        plt.savefig(
+
             buf,
+
             format="png",
+
             bbox_inches="tight",
+
             dpi=300
+
         )
 
         buf.seek(0)
 
-        plt.close(fig)
+        plt.close()
 
         return StreamingResponse(
+
             buf,
+
             media_type="image/png"
+
         )

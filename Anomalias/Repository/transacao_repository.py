@@ -83,15 +83,21 @@ class TransacaoRepository:
         }
 
 
-    def inserir_transacao(self, transacao):
+    def inserir_transacao(
+        self,
+        transacao
+        ):
 
         conn = get_connection()
+
         cursor = conn.cursor()
 
         try:
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO transacoes (
+
                     id,
                     valor,
                     data,
@@ -109,34 +115,60 @@ class TransacaoRepository:
                     estabelecimento,
                     tentativas,
                     ip_origem,
-                    is_fraude
+                    is_fraude,
+                    motivos
+
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                transacao.id,
-                transacao.valor,
-                transacao.data,
-                transacao.hora,
-                transacao.dia_semana,
-                transacao.categoria,
-                transacao.conta,
-                transacao.cidade,
-                transacao.estado,
-                transacao.pais,
-                transacao.latitude,
-                transacao.longitude,
-                transacao.tipo_transacao,
-                transacao.dispositivo,
-                transacao.estabelecimento,
-                transacao.tentativas,
-                transacao.ip_origem,
-                int(transacao.is_fraude)
-            ))
+
+                VALUES (
+
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+
+                )
+                """,
+                (
+
+                    transacao.id,
+                    transacao.valor,
+                    transacao.data,
+                    transacao.hora,
+                    transacao.dia_semana,
+                    transacao.categoria,
+                    transacao.conta,
+                    transacao.cidade,
+                    transacao.estado,
+                    transacao.pais,
+                    transacao.latitude,
+                    transacao.longitude,
+                    transacao.tipo_transacao,
+                    transacao.dispositivo,
+                    transacao.estabelecimento,
+                    transacao.tentativas,
+                    transacao.ip_origem,
+                    int(
+                        transacao.is_fraude
+                    ),
+                    transacao.motivo
+
+                )
+            )
 
             conn.commit()
 
             return {
-                "msg": "Transação inserida com sucesso"
+
+                "mensagem":
+
+                    "Transação inserida com sucesso",
+
+                "is_fraude":
+
+                    transacao.is_fraude,
+
+                "motivo":
+
+                    transacao.motivo
+
             }
 
         except Exception as e:
@@ -144,10 +176,15 @@ class TransacaoRepository:
             conn.rollback()
 
             return {
-                "erro": str(e)
+
+                "erro":
+
+                    str(e)
+
             }
 
         finally:
+
             conn.close()
 
     def update_status_fraude(

@@ -1,5 +1,9 @@
-from Services.anomalias_services import (
-    AnomaliasService
+from Regras.zscore_service import (
+    ZScoreService
+)
+
+from Regras.gaussiana_service import (
+    GaussianaService
 )
 
 from Services.localizacao_service import (
@@ -11,13 +15,11 @@ class PerfilRegras:
 
     def __init__(self):
 
-        self.anomalias_service = (
-            AnomaliasService()
-        )
+        self.zscore_service = ZScoreService()
 
-        self.localizacao_service = (
-            LocalizacaoService()
-        )
+        self.gaussiana_service = GaussianaService()
+
+        self.localizacao_service = LocalizacaoService()
 
     # =====================================================
     # PERFIL BÁSICO
@@ -31,35 +33,38 @@ class PerfilRegras:
         return {
 
             "quantidade_transacoes":
-
                 int(len(df)),
 
             "ticket_medio":
-
-                float(
-                    df["valor"]
-                    .mean()
+                round(
+                    float(
+                        df["valor"].mean()
+                    ),
+                    2
                 ),
 
             "ticket_maximo":
-
-                float(
-                    df["valor"]
-                    .max()
+                round(
+                    float(
+                        df["valor"].max()
+                    ),
+                    2
                 ),
 
             "ticket_minimo":
-
-                float(
-                    df["valor"]
-                    .min()
+                round(
+                    float(
+                        df["valor"].min()
+                    ),
+                    2
                 ),
 
             "desvio_padrao":
-
-                float(
-                    df["valor"]
-                    .std()
+                round(
+                    float(
+                        df["valor"].std()
+                    ),
+                    2
                 )
         }
 
@@ -72,37 +77,39 @@ class PerfilRegras:
         df
     ):
 
+        horario = (
+            df["hora"]
+            .astype(str)
+            .str[:2]
+            .mode()
+            .iloc[0]
+        )
+
         return {
 
             "cidade_predominante":
-
                 str(
-
                     df["cidade"]
                     .mode()
                     .iloc[0]
-
-                ) if not df["cidade"].empty else None,
+                ),
 
             "categoria_predominante":
-
                 str(
-
                     df["categoria"]
                     .mode()
                     .iloc[0]
-
-                ) if not df["categoria"].empty else None,
+                ),
 
             "dispositivo_predominante":
-
                 str(
-
                     df["dispositivo"]
                     .mode()
                     .iloc[0]
+                ),
 
-                ) if not df["dispositivo"].empty else None
+            "horario_predominante":
+                f"{horario}h"
         }
 
     # =====================================================
@@ -115,13 +122,11 @@ class PerfilRegras:
     ):
 
         media = (
-
             df["valor"]
             .mean()
         )
 
         desvio = (
-
             df["valor"]
             .std()
         )
@@ -129,23 +134,31 @@ class PerfilRegras:
         return {
 
             "media":
-
-                float(media),
+                round(
+                    float(media),
+                    2
+                ),
 
             "desvio_padrao":
-
-                float(desvio),
+                round(
+                    float(desvio),
+                    2
+                ),
 
             "valor_habitual_min":
-
-                float(
-                    media - desvio
+                round(
+                    float(
+                        media - desvio
+                    ),
+                    2
                 ),
 
             "valor_habitual_max":
-
-                float(
-                    media + desvio
+                round(
+                    float(
+                        media + desvio
+                    ),
+                    2
                 )
         }
 
@@ -160,23 +173,20 @@ class PerfilRegras:
     ):
 
         zscore = (
-
-            self.anomalias_service
+            self.zscore_service
             .analisar_zscore(
-                conta
+                df
             )
         )
 
         gaussiana = (
-
-            self.anomalias_service
+            self.gaussiana_service
             .analisar_gaussiana(
-                conta
+                df
             )
         )
 
         distancia = (
-
             self.localizacao_service
             .analisar_distancia(
                 conta
@@ -184,7 +194,6 @@ class PerfilRegras:
         )
 
         ip = (
-
             self.localizacao_service
             .analisar_ip(
                 conta
@@ -192,7 +201,6 @@ class PerfilRegras:
         )
 
         velocidade = (
-
             self.localizacao_service
             .analisar_velocidade(
                 conta
@@ -202,121 +210,105 @@ class PerfilRegras:
         return {
 
             "conta":
-
                 conta,
 
             "perfil_basico":
-
                 self._perfil_basico(
                     df
                 ),
 
             "comportamento":
-
                 self._comportamento(
                     df
                 ),
 
             "assinatura_financeira":
-
                 self._assinatura_financeira(
                     df
                 ),
 
-            "zscore":
+            "zscore": {
 
-                {
-
-                    "zscore_medio":
-
+                "zscore_medio":
+                    round(
                         zscore.get(
                             "zscore_medio"
                         ),
+                        2
+                    ),
 
-                    "zscore_maximo":
-
+                "zscore_maximo":
+                    round(
                         zscore.get(
                             "zscore_maximo"
                         ),
+                        2
+                    ),
 
-                    "percentual_anomalias":
+                "percentual_anomalias":
+                    f"{round(zscore.get('percentual_anomalias'), 2)}%"
 
-                        zscore.get(
-                            "percentual_anomalias"
-                        )
-                },
+            },
 
-            "gaussiana":
+            "gaussiana": {
 
-                {
-
-                    "score_medio":
-
+                "score_medio":
+                    round(
                         gaussiana.get(
                             "score_medio"
                         ),
+                        2
+                    ),
 
-                    "score_maximo":
-
+                "score_maximo":
+                    round(
                         gaussiana.get(
                             "score_maximo"
-                        )
-                },
+                        ),
+                        2
+                    )
 
-            "geo_distancia":
+            },
 
-                {
+            "geo_distancia": {
 
-                    "distancia_media":
-
+                "distancia_media":
+                    round(
                         distancia.get(
                             "distancia_media"
                         ),
+                        2
+                    )
 
-                    "score_medio":
+            },
 
-                        distancia.get(
-                            "score_medio"
-                        )
-                },
+            "geo_ip": {
 
-            "geo_ip":
+                "ip_predominante":
+                    ip.get(
+                        "ip_predominante"
+                    )
 
-                {
+            },
 
-                    "redes_unicas":
+            "geo_velocidade": {
 
-                        ip.get(
-                            "redes_unicas"
-                        ),
-
-                    "score_medio":
-
-                        ip.get(
-                            "score_medio"
-                        )
-                },
-
-            "geo_velocidade":
-
-                {
-
-                    "velocidade_media":
-
+                "velocidade_media":
+                    round(
                         velocidade.get(
                             "velocidade_media"
                         ),
+                        2
+                    ),
 
-                    "velocidade_maxima":
-
+                "velocidade_maxima":
+                    round(
                         velocidade.get(
                             "velocidade_maxima"
                         ),
+                        2
+                    )
 
-                    "score_medio":
+            }
 
-                        velocidade.get(
-                            "score_medio"
-                        )
-                }
         }

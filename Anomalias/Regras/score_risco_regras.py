@@ -1,80 +1,199 @@
-class ScoreRiscoRegras:
+class ScoreService:
 
     def calcular_score(
-
         self,
-
-        perfil
-
+        perfil: dict,
+        transacao
     ):
 
         score = 0
 
         motivos = []
 
-        # ==========================
-        # ZSCORE
-        # ==========================
+        # ==========================================
+        # ASSINATURA FINANCEIRA
+        # ==========================================
 
-        if perfil["zscore_maximo"] > 2:
+        assinatura = (
+            perfil["assinatura_financeira"]
+        )
+
+        if (
+            transacao.valor >
+            assinatura["valor_habitual_max"]
+        ):
+
+            score += 30
+
+            motivos.append(
+                "Valor acima do padrão financeiro"
+            )
+
+        # ==========================================
+        # HORÁRIO
+        # ==========================================
+
+        horario_habitual = (
+
+            perfil["comportamento"]
+            ["horario_predominante"]
+            .replace("h", "")
+        )
+
+        hora_transacao = (
+            str(transacao.hora)[:2]
+        )
+
+        if (
+            hora_transacao
+            !=
+            horario_habitual
+        ):
+
+            score += 15
+
+            motivos.append(
+                "Horário incomum"
+            )
+
+        # ==========================================
+        # CIDADE
+        # ==========================================
+
+        if (
+
+            transacao.cidade.lower()
+
+            !=
+
+            perfil["comportamento"][
+                "cidade_predominante"
+            ].lower()
+
+        ):
 
             score += 20
 
             motivos.append(
-                "valor fora do padrão"
+                "Cidade incomum"
             )
 
-        # ==========================
-        # GAUSSIANA
-        # ==========================
+        # ==========================================
+        # DISPOSITIVO
+        # ==========================================
 
-        if perfil["score_gaussiano"] > 0.7:
+        if (
 
-            score += 15
+            transacao.dispositivo.lower()
+
+            !=
+
+            perfil["comportamento"][
+                "dispositivo_predominante"
+            ].lower()
+
+        ):
+
+            score += 20
 
             motivos.append(
-                "baixa probabilidade estatística"
+                "Dispositivo diferente do habitual"
             )
 
-        # ==========================
-        # IP
-        # ==========================
+        # ==========================================
+        # CATEGORIA
+        # ==========================================
 
-        if perfil["score_ip"] > 0.5:
+        if (
+
+            transacao.categoria.lower()
+
+            !=
+
+            perfil["comportamento"][
+                "categoria_predominante"
+            ].lower()
+
+        ):
 
             score += 10
 
             motivos.append(
-                "rede incomum"
+                "Categoria incomum"
             )
 
-        # ==========================
-        # DISTÂNCIA
-        # ==========================
+        # ==========================================
+        # MUITAS TENTATIVAS
+        # ==========================================
 
-        if perfil["score_distancia"] > 0.6:
+        if (
+            transacao.tentativas >= 3
+        ):
 
-            score += 15
+            score += 40
 
             motivos.append(
-                "localização incomum"
+                "Múltiplas tentativas"
             )
 
-        # ==========================
-        # VELOCIDADE
-        # ==========================
+        # ==========================================
+        # PAÍS DIFERENTE
+        # ==========================================
 
-        if perfil["score_velocidade"] > 0.7:
+        if (
 
-            score += 25
+            hasattr(
+                transacao,
+                "pais"
+            )
+
+            and
+
+            transacao.pais.lower()
+
+            !=
+
+            "brasil"
+
+        ):
+
+            score += 35
 
             motivos.append(
-                "deslocamento suspeito"
+                "Transação internacional"
+            )
+
+        # ==========================================
+        # CLASSIFICAÇÃO
+        # ==========================================
+
+        if score <= 30:
+
+            classificacao = (
+                "BAIXO"
+            )
+
+        elif score <= 60:
+
+            classificacao = (
+                "MÉDIO"
+            )
+
+        else:
+
+            classificacao = (
+                "ALTO"
             )
 
         return {
 
-            "score": score,
+            "score":
+                score,
 
-            "motivos": motivos
+            "classificacao":
+                classificacao,
+
+            "motivos":
+                motivos
+
         }
