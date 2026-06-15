@@ -194,42 +194,52 @@ npm start
 
 ## 📋 Estrutura de Pastas
 
-```
+```text
 Dashboard/
-├── Anomalias/              # Backend Python (FastAPI & ML)
-│   ├── main/               # Rotas e configurações do servidor
-│   ├── models/             # Lógica matemática (Gaussiana, Z-Score, Geo, etc)
-│   └── script.sql          # Estrutura do Banco de Dados
-├── app/
-│   ├── layout.tsx          # Layout principal
-│   ├── page.tsx            # Dashboard (home)
-│   ├── api/ml/             # Proxy Next.js para a API Python
-│   ├── transactions/       # Página de Transações
-│   └── laboratorio/        # Página do Laboratório de ML
-├── components/
-│   ├── Sidebar.tsx         # Menu de navegação
-│   ├── KPICard.tsx         # Card de KPI
-│   ├── TransactionsTable.tsx # Tabela de transações
-│   ├── TransactionModal.tsx  # Modal (com Abas e Gráficos ML)
-│   └── CreateTransactionModal.tsx
+├── Anomalias/                  # Backend Python (FastAPI & SQL Server)
+│   ├── Controllers/            # Controladores das rotas HTTP (REST)
+│   ├── Core/                   # Configurações globais e middlewares
+│   ├── Repository/             # Lógica de banco de dados e queries SQL
+│   ├── Services/               # Regras de negócio e consumo dos modelos de ML
+│   ├── insertautomatizado/     # Scripts Python para popular o banco de testes (Seed)
+│   ├── main/                   # Sub-rotas e lógicas auxiliares do FastAPI
+│   ├── models/                 # Modelos de estrutura de dados (Pydantic/Entidades)
+│   ├── main.py                 # Ponto de entrada do servidor Uvicorn (Entrypoint)
+│   ├── requirements.txt        # Dependências do Python (pip install)
+│   └── script.sql              # Script DDL para criar o banco e tabelas no SSMS
+├── app/                        # Frontend Next.js (App Router)
+│   ├── ajuda/                  # Manual Operacional e Guia de Prevenção de Fraudes
+│   ├── anomalies/              # Listagem dedicada de anomalias pré-filtradas
+│   ├── api/                    # BFF (Backend for Frontend) e Proxies Next.js
+│   ├── laboratorio/            # (Legado) Antiga página isolada de ML
+│   ├── transactions/           # Interface principal de Auditoria e Julgamento
+│   ├── layout.tsx              # Layout base com barra de navegação (Header)
+│   ├── page.tsx                # Dashboard Inicial (Painel Gerencial)
+│   └── globals.css             # Arquivo de importação de estilos Tailwind
+├── components/                 # Componentes React Reutilizáveis
+│   ├── ChartCard.tsx           # Cartão envelopador de gráficos
+│   ├── CreateTransactionModal.tsx # Modal de inserção manual e form validation
+│   ├── Icons.tsx               # Biblioteca centralizada de ícones SVG
+│   ├── KPICard.tsx             # Componente de visores numéricos (Dashboard)
+│   ├── Sidebar.tsx             # Menu lateral interativo de navegação
+│   ├── TransactionModal.tsx    # Lightbox principal (Abas de Detalhes + Motor ML)
+│   └── TransactionsTable.tsx   # Tabela paginada nativamente (Com filtros avançados)
 ├── lib/
-│   └── api.ts              # Cliente da API Principal
-├── .agents/rules/          # Regras do Cursor AI (Design System)
-├── tailwind.config.js
-└── package.json
+│   └── api.ts                  # Cliente Axios integrando o front com a API Python
+├── tailwind.config.js          # Tokens de design do Tailwind CSS
+└── package.json                # Gerenciador de pacotes e scripts do Node.js
 ```
 
 ## 📡 API Endpoints Consumidos
 
-| Método | Endpoint                        | Descrição                                                |
-| ------ | ------------------------------- | -------------------------------------------------------- |
-| GET    | `/sql/querry/`                  | Listar todas as transações (com parâmetros de filtro)    |
-| GET    | `/sql/transactions/{conta}`     | Histórico completo de transações de uma conta específica |
-| GET    | `/sql/contas/`                  | Obter lista de contas bancárias disponíveis              |
-| POST   | `/sql/transactions/`            | Inserir nova transação manualmente                       |
-| GET    | `/sql/calculozscore/{conta}`    | Imagem do gráfico Z-Score do cliente ou base             |
-| GET    | `/sql/calculogaussiana/{conta}` | Imagem do gráfico de Distribuição Normal (Sino)          |
-| GET    | `/sql/geo/distancia/`           | Imagem da análise de distância e velocidade geográfica   |
+| Método | Exemplo de Endpoint             | Descrição Operacional                                      |
+| ------ | ------------------------------- | ---------------------------------------------------------- |
+| GET    | `/transacoes/search`            | Listagem global com suporte a filtros e paginação nativa (`skip` e `limit`). |
+| PUT    | `/transacoes/{id}/fraude`       | Rota de auditoria que salva o julgamento do analista (fraude confirmada) direto no banco. |
+| GET    | `/transacoes/cidades`           | Rota otimizada para alimentar dropdowns de filtros dinâmicos sem baixar milhões de linhas. |
+| GET    | `/dashboard/metrics`            | Devolve indicadores prontos e calculados pela própria engine do SQL Server. |
+| GET    | `/sql/calculozscore/...`        | Gráficos do laboratório Python (Z-Score, Gaussiana) servidos como PNG por streaming (`Agg`). |
+| GET    | `/sql/geo/distancia/`           | Rota que expõe o cruzamento de lat/long indicando viagem física impossível. |
 
 ## 🎨 Paleta de Cores
 
@@ -241,13 +251,11 @@ Dashboard/
 
 ## 🚀 Features Implementadas
 
-✅ Design System (Fintech) em modais e tabelas
-✅ Integração completa com Motor Python FastAPI
-✅ Laboratório de ML com 5 gráficos em tempo real (Matplotlib via StreamingResponse)
-✅ Filtro de Contas Bancárias extraído do SQL Server
-✅ Dashboard com KPIs calculados localmente
-✅ Paginação dinâmica do lado do cliente
-✅ Tratamento rigoroso de erros de servidor e concorrência (Agg Backend)
+**Paginação Nativa no Servidor (Server-Side):** A tabela carrega milhões de registros instantaneamente usando as diretivas SQL de paginação, sem pesar o navegador.
+**Dashboard Otimizado:** KPIs e gráficos processados diretamente no banco de dados em uma rota própria.
+**Auditoria Humana Definitiva:** O analista revisa anomalias sinalizadas pelo ML e sentencia a operação (PUT update via API).
+**Laboratório de ML Estável:** 5 modelos matemáticos gerados na nuvem (usando `matplotlib.use('Agg')` anti-crash) e servidos via Streaming.
+**Manual Operacional:** Documentação interna (`/ajuda`) traduzindo conceitos de Machine Learning para os auditores em linguagem clara e humana.
 
 ## 📝 Notas
 
