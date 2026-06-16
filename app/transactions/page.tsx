@@ -154,15 +154,15 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex flex-wrap items-center gap-3">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex flex-col md:flex-row flex-wrap md:items-center gap-3">
         {/* Search Bar */}
-        <div className="flex-1 min-w-[200px] relative px-4 flex items-center">
+        <div className="flex-1 min-w-0 relative px-4 flex items-center bg-gray-50 md:bg-transparent rounded-lg md:rounded-none">
           <input
             type="text"
             placeholder="Procure uma transação..."
             value={filters.search || ''}
             onChange={handleSearch}
-            className="w-full bg-transparent outline-none text-gray-700 text-sm font-medium placeholder-gray-400 py-2"
+            className="w-full bg-transparent outline-none text-gray-700 text-sm font-medium placeholder-gray-400 py-2.5 md:py-2"
           />
           <span className="text-gray-400 absolute right-4"><SearchIcon /></span>
         </div>
@@ -171,14 +171,14 @@ export default function TransactionsPage() {
         <div className="w-px h-8 bg-gray-200 hidden md:block"></div>
 
         {/* Filter Selects & Pills */}
-        <div className="flex flex-wrap items-center gap-2 pr-2">
+        <div className="flex flex-wrap items-center gap-2 pr-2 w-full md:w-auto">
           
           {/* Conta - Dropdown Customizado */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setContaDropdownOpen(v => !v)}
-              className={`appearance-none px-5 py-2.5 bg-gray-50 border rounded-full text-sm font-bold text-left min-w-[170px] hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 transition-colors flex items-center justify-between gap-2 ${
+              className={`appearance-none px-4 md:px-5 py-2.5 bg-gray-50 border rounded-full text-xs md:text-sm font-bold text-left w-auto md:min-w-[170px] hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 transition-colors flex items-center justify-between gap-2 ${
                 filters.conta ? 'border-blue-300 bg-blue-50 text-blue-700' : 'border-gray-100 text-gray-700'
               }`}
             >
@@ -233,7 +233,7 @@ export default function TransactionsPage() {
 
           <div className="relative">
             <select
-              className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
+              className="appearance-none px-4 md:px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8 w-full md:w-auto"
               value={filters.categoria || 'all'}
               onChange={(e) => handleFilterChange('categoria', e.target.value)}
             >
@@ -245,7 +245,7 @@ export default function TransactionsPage() {
           
           <div className="relative">
             <select
-              className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
+              className="appearance-none px-4 md:px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8 w-full md:w-auto"
               value={filters.valor_max?.toString() || 'all'}
               onChange={(e) => handleFilterChange('valor_max', e.target.value)}
             >
@@ -260,7 +260,7 @@ export default function TransactionsPage() {
           
           <div className="relative">
             <select
-              className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
+              className="appearance-none px-4 md:px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8 w-full md:w-auto max-w-[160px] truncate"
               value={filters.cidade || 'all'}
               onChange={(e) => handleFilterChange('cidade', e.target.value)}
             >
@@ -272,7 +272,7 @@ export default function TransactionsPage() {
           
           <div className="relative">
             <select
-              className="appearance-none px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8"
+              className="appearance-none px-4 md:px-5 py-2.5 bg-gray-50 border border-gray-100 rounded-full text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-100 cursor-pointer outline-none focus:ring-2 focus:ring-blue-100 pr-8 w-full md:w-auto"
               value={filters.status || 'all'}
               onChange={(e) => handleFilterChange('status', e.target.value)}
             >
@@ -286,7 +286,7 @@ export default function TransactionsPage() {
           <div className="relative">
             <button
               onClick={() => setShowDatePicker((v) => !v)}
-              className={`px-5 py-2.5 border rounded-full text-sm font-bold flex items-center gap-2 transition-colors ${
+              className={`px-4 md:px-5 py-2.5 border rounded-full text-xs md:text-sm font-bold flex items-center gap-2 transition-colors w-full md:w-auto justify-center ${
                 filters.data_inicio || filters.data_fim
                   ? 'bg-blue-100 border-blue-200 text-blue-700 hover:bg-blue-200'
                   : 'bg-gray-50 border-gray-100 text-gray-700 hover:bg-gray-100'
@@ -345,7 +345,7 @@ export default function TransactionsPage() {
           
           <button 
             onClick={() => handleFilterChange('is_fraude', filters.is_fraude ? undefined : true)}
-            className={`px-5 py-2.5 border rounded-full text-sm font-bold transition-colors ${
+            className={`px-4 md:px-5 py-2.5 border rounded-full text-xs md:text-sm font-bold transition-colors w-full md:w-auto ${
               filters.is_fraude 
                 ? 'bg-red-100 border-red-200 text-red-700 hover:bg-red-200' 
                 : 'bg-gray-50 border-gray-100 text-gray-700 hover:bg-gray-100'
@@ -360,14 +360,13 @@ export default function TransactionsPage() {
       <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/40 border border-gray-100 overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <h2 className="text-lg font-bold text-gray-900">Histórico de Transações</h2>
-          <div className="flex items-center gap-3">
-            <p className="text-sm font-medium text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-              Mostrando <strong>{currentPage * pageSize + transactions.length}</strong> de{' '}
-              <strong>{total}</strong>
+          <div className="flex items-center gap-3 mt-3 md:mt-0">
+            <p className="text-xs md:text-sm font-medium text-gray-500 bg-white px-2 md:px-3 py-1 rounded-full border border-gray-200 shadow-sm whitespace-nowrap">
+              <strong className="hidden sm:inline">Mostrando</strong> {currentPage * pageSize + transactions.length} de {total}
             </p>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95"
+              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded-xl shadow-sm transition-all active:scale-95 whitespace-nowrap"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -435,14 +434,14 @@ export default function TransactionsPage() {
             </div>
 
             {/* Paginação */}
-            <div className="px-4 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <label className="text-sm text-gray-600">
+            <div className="px-4 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                <label className="text-xs sm:text-sm text-gray-600 flex items-center justify-between w-full sm:w-auto">
                   Itens por página:
                   <select
                     value={pageSize}
                     onChange={(e) => handlePageSizeChange(parseInt(e.target.value))}
-                    className="ml-2 px-2 py-1 border border-gray-300 rounded"
+                    className="ml-2 px-2 py-1 border border-gray-300 rounded focus:outline-none"
                   >
                     <option value="10">10</option>
                     <option value="25">25</option>
@@ -451,12 +450,12 @@ export default function TransactionsPage() {
                     <option value="500">500</option>
                   </select>
                 </label>
-                <span className="text-sm text-gray-500">
-                  {total} resultado{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
+                <span className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+                  {total} resultado{total !== 1 ? 's' : ''}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap justify-center sm:justify-end items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => goToPage(0)}
                   disabled={currentPage === 0}
@@ -471,8 +470,8 @@ export default function TransactionsPage() {
                 >
                   <ChevronLeftIcon />
                 </button>
-                <span className="text-sm text-gray-600">
-                  Página {currentPage + 1} de {totalPages}
+                <span className="text-xs sm:text-sm text-gray-600 px-2 font-medium">
+                  {currentPage + 1} / {totalPages}
                 </span>
                 <button
                   onClick={() => goToPage(Math.min(totalPages - 1, currentPage + 1))}
