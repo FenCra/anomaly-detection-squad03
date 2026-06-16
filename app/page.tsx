@@ -22,7 +22,6 @@ interface DashboardData {
   distribuicao_valores: Array<{ name: string; value: number }>
   resultado_anomalias: Array<{ name: string; value: number }>
   transacoes_hora: Array<{ name: string; value: number }>
-  top_usuarios: Array<{ name: string; value: number }>
 }
 
 export default function Dashboard() {

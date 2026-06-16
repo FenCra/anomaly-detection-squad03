@@ -293,6 +293,92 @@ class TransacaoRepository:
         }
 
 
+    # =========================================================
+    # AGREGAÇÕES GLOBAIS (DASHBOARD)
+    # =========================================================
+
+    def buscar_volume_dias(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                dia_semana,
+                COUNT(*) as total
+            FROM transacoes
+            GROUP BY dia_semana
+        """)
+        dados = [{"name": row[0], "value": row[1]} for row in cursor.fetchall()]
+        conn.close()
+        return dados
+
+    def buscar_distribuicao_valores(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                CASE 
+                    WHEN valor <= 50 THEN 'Até R$50'
+                    WHEN valor <= 200 THEN 'Até R$200'
+                    WHEN valor <= 1000 THEN 'Até R$1.000'
+                    WHEN valor <= 5000 THEN 'Até R$5.000'
+                    ELSE 'Acima de R$5k'
+                END as faixa,
+                COUNT(*) as total
+            FROM transacoes
+            GROUP BY
+                CASE 
+                    WHEN valor <= 50 THEN 'Até R$50'
+                    WHEN valor <= 200 THEN 'Até R$200'
+                    WHEN valor <= 1000 THEN 'Até R$1.000'
+                    WHEN valor <= 5000 THEN 'Até R$5.000'
+                    ELSE 'Acima de R$5k'
+                END
+        """)
+        dados = cursor.fetchall()
+        
+        # Ordenação manual para o frontend
+        ordem = ['Até R$50', 'Até R$200', 'Até R$1.000', 'Até R$5.000', 'Acima de R$5k']
+        dict_dados = {row[0]: row[1] for row in dados}
+        resultado = [{"name": faixa, "value": dict_dados.get(faixa, 0)} for faixa in ordem]
+        
+        conn.close()
+        return resultado
+
+    def buscar_transacoes_hora_global(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                DATEPART(HOUR, hora) as hora_int,
+                COUNT(*) as total
+            FROM transacoes
+            GROUP BY DATEPART(HOUR, hora)
+            ORDER BY hora_int ASC
+        """)
+        # Transforma 9 em '09:00'
+        dados = []
+        for row in cursor.fetchall():
+            h_str = str(row[0]).zfill(2) + ":00"
+            dados.append({"name": h_str, "value": row[1]})
+            
+        conn.close()
+        return dados
+
+    def buscar_top_usuarios_anomalias(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT TOP 5 conta, COUNT(*) as total
+            FROM transacoes
+            WHERE is_fraude = 1
+            GROUP BY conta
+            ORDER BY total DESC
+        """)
+        dados = [{"name": row[0], "value": row[1]} for row in cursor.fetchall()]
+        conn.close()
+        return dados
+
+
     def query_transacoes(
         self,
         conta=None,

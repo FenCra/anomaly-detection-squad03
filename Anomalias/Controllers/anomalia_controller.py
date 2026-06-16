@@ -109,6 +109,27 @@ def dashboard_metrics():
     )
 
 
+# =========================================================
+# AGREGAÇÕES GLOBAIS (DASHBOARD)
+# =========================================================
+
+@router.get("/analytics/global/volume_dias")
+def buscar_volume_dias():
+    return transacao_service.buscar_volume_dias()
+
+@router.get("/analytics/global/distribuicao_valores")
+def buscar_distribuicao_valores():
+    return transacao_service.buscar_distribuicao_valores()
+
+@router.get("/analytics/global/transacoes_hora")
+def buscar_transacoes_hora_global():
+    return transacao_service.buscar_transacoes_hora_global()
+
+@router.get("/analytics/global/top_usuarios")
+def buscar_top_usuarios_anomalias():
+    return transacao_service.buscar_top_usuarios_anomalias()
+
+
 @router.get("/transacoes/cidades")
 def listar_cidades():
 

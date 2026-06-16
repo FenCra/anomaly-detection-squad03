@@ -49,6 +49,18 @@ class TransacaoService:
            .dashboard_metrics()
         )
 
+    def buscar_volume_dias(self):
+        return self.repository.buscar_volume_dias()
+
+    def buscar_distribuicao_valores(self):
+        return self.repository.buscar_distribuicao_valores()
+
+    def buscar_transacoes_hora_global(self):
+        return self.repository.buscar_transacoes_hora_global()
+
+    def buscar_top_usuarios_anomalias(self):
+        return self.repository.buscar_top_usuarios_anomalias()
+
     def criar_transacao(
         self,
         transacao

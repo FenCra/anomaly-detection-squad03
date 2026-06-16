@@ -36,34 +36,27 @@ export interface TransactionsResponse {
 // Transações
 export async function fetchTransactions(params: Record<string, any> = {}): Promise<TransactionsResponse> {
   const serverParams: Record<string, any> = {}
-  
-  // Extrair paginação e repassar ao servidor
   const limit = params.limit ? Number(params.limit) : 50
   const skip = params.skip ? Number(params.skip) : 0
 
-  // Converter status para is_fraude
   if (params.status === 'negada') {
     serverParams.is_fraude = true
   } else if (params.status === 'aprovada') {
     serverParams.is_fraude = false
   }
 
-  // Copiar restante dos params (exceto status, limit, skip)
   Object.entries(params).forEach(([key, value]) => {
     if (key === 'status' || key === 'limit' || key === 'skip') return
     if (value === undefined || value === '' || value === 'all') return
     serverParams[key] = value
   })
 
-  // Enviar paginação e filtros ao backend
   serverParams.limit = limit
   serverParams.skip = skip
 
   try {
     const response = await api.get('/transactions', { params: serverParams })
     const responseData = response.data
-
-    // O backend retorna { total: <COUNT real do banco>, dados: [...] }
     let data: any[] = responseData.dados || responseData.transacoes || []
     const serverTotal: number = responseData.total ?? data.length
 
@@ -100,7 +93,7 @@ export interface Anomaly extends Transaction {
 }
 
 export async function fetchAnomalies(params: Record<string, any> = {}) {
-  // Mapeia regras para transações negadas
+
   const res = await fetchTransactions({ ...params, status: 'negada' })
   return {
     total: res.total,
@@ -114,147 +107,54 @@ export async function fetchAnomalies(params: Record<string, any> = {}) {
   }
 }
 
-// Dashboard
+// Dashboard e Analytics
 export async function fetchDashboard() {
   try {
-    // 1. Busca métricas reais (totais exatos) diretamente do endpoint dedicado do backend
-    let backendMetrics: any = null
-    try {
-      const metricsRes = await fetch('/api/ml/dashboard/metrics')
-      if (metricsRes.ok) backendMetrics = await metricsRes.json()
-    } catch (_) { /* fallback para cálculo local */ }
+    // Busca métricas gerais e agregações globais usando a proxy /api/ml/
+    const [metricsRes, diasRes, valoresRes, horasRes, topUsuariosRes] = await Promise.all([
+      fetch('/api/ml/dashboard/metrics'),
+      fetch('/api/ml/analytics/global/volume_dias'),
+      fetch('/api/ml/analytics/global/distribuicao_valores'),
+      fetch('/api/ml/analytics/global/transacoes_hora'),
+      fetch('/api/ml/analytics/global/top_usuarios')
+    ])
 
-    // 2. Busca uma amostra razoável de transações para os gráficos de distribuição
-    const sample = await fetchTransactions({ limit: 2000 })
-    const transactionsList = sample.items
+    const backendMetrics = metricsRes.ok ? await metricsRes.json() : { total_transacoes: 0, total_fraudes: 0, total_movimentado: 0 }
+    const volumeDias = diasRes.ok ? await diasRes.json() : []
+    const distribuicaoValores = valoresRes.ok ? await valoresRes.json() : []
+    const transacoesHora = horasRes.ok ? await horasRes.json() : []
+    const topUsuarios = topUsuariosRes.ok ? await topUsuariosRes.json() : []
 
-    const totalTransactionsReal = backendMetrics?.total_transacoes ?? sample.total
-    const totalAnomaliesReal = backendMetrics?.total_fraudes ?? transactionsList.filter((t: any) => t.is_fraude).length
-    const totalMovido = backendMetrics?.total_movimentado ?? transactionsList.reduce((acc: number, t: any) => acc + t.valor, 0)
-
-    const volumeDiasMap = new Map<string, number>()
-    const valoresBuckets = {
-      'Até R$50': 0,
-      'Até R$200': 0,
-      'Até R$1.000': 0,
-      'Até R$5.000': 0,
-      'Acima de R$5k': 0,
-    }
-    const horaMap = new Map<string, number>()
-    const userAnomaliasMap = new Map<string, number>()
-
-    transactionsList.forEach((t) => {
-      if (t.is_fraude) {
-        userAnomaliasMap.set(t.conta, (userAnomaliasMap.get(t.conta) || 0) + 1)
-      }
-
-      let diaDaSemana = 'segunda'
-      if (t.dia_semana && typeof t.dia_semana === 'string') {
-        const diaRaw = t.dia_semana.toLowerCase().trim()
-        const mapaDias: Record<string, string> = {
-          'monday': 'segunda', 'tuesday': 'terça', 'wednesday': 'quarta', 'thursday': 'quinta',
-          'friday': 'sexta', 'saturday': 'sábado', 'sunday': 'domingo',
-          'segunda': 'segunda', 'terça': 'terça', 'quarta': 'quarta', 'quinta': 'quinta',
-          'sexta': 'sexta', 'sábado': 'sábado', 'domingo': 'domingo',
-          'segunda-feira': 'segunda', 'terça-feira': 'terça', 'quarta-feira': 'quarta',
-          'quinta-feira': 'quinta', 'sexta-feira': 'sexta'
-        }
-        diaDaSemana = mapaDias[diaRaw] || diaRaw
-      } else if (t.data) {
-        const d = new Date(t.data)
-        if (!isNaN(d.getTime())) {
-          const nomesDias = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
-          diaDaSemana = nomesDias[d.getDay()]
-        }
-      }
-      volumeDiasMap.set(diaDaSemana, (volumeDiasMap.get(diaDaSemana) || 0) + 1)
-
-      if (t.valor <= 50) valoresBuckets['Até R$50']++
-      else if (t.valor <= 200) valoresBuckets['Até R$200']++
-      else if (t.valor <= 1000) valoresBuckets['Até R$1.000']++
-      else if (t.valor <= 5000) valoresBuckets['Até R$5.000']++
-      else valoresBuckets['Acima de R$5k']++
-
-      const horaStr = t.hora ? t.hora.substring(0, 2) + ':00' : '00:00'
-      horaMap.set(horaStr, (horaMap.get(horaStr) || 0) + 1)
-    })
-
-    const topUsuarios = Array.from(userAnomaliasMap.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5)
-
-    const volumeDiasOrdenado = ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo']
-      .map((dia) => {
-        const key = Array.from(volumeDiasMap.keys()).find((k) => k.trim().toLowerCase() === dia)
-        return { name: dia.charAt(0).toUpperCase() + dia.slice(1), value: key ? volumeDiasMap.get(key) || 0 : 0 }
-      })
-
-    const horasOrdenadas = Array.from(horaMap.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-
-    const now = new Date()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-    
-    let trCurrent = 0, trPrev = 0
-    let anomCurrent = 0, anomPrev = 0
-    let valorCurrent = 0, valorPrev = 0
-    let aprovCurrent = 0, aprovPrev = 0
-
-    transactionsList.forEach(t => {
-      const d = new Date(t.data)
-      const isCurrentMonth = d.getMonth() === currentMonth && d.getFullYear() === currentYear
-      let isPrevMonth = false
-      if (currentMonth === 0) {
-        if (d.getMonth() === 11 && d.getFullYear() === currentYear - 1) isPrevMonth = true
-      } else {
-        if (d.getMonth() === currentMonth - 1 && d.getFullYear() === currentYear) isPrevMonth = true
-      }
-
-      if (isCurrentMonth) {
-        trCurrent++; valorCurrent += t.valor
-        if (t.is_fraude) anomCurrent++
-      } else if (isPrevMonth) {
-        trPrev++; valorPrev += t.valor
-        if (t.is_fraude) anomPrev++
-      }
-    })
-
-    if (trCurrent === 0 && trPrev === 0 && transactionsList.length > 0) {
-      const meio = Math.floor(transactionsList.length / 2)
-      transactionsList.slice(0, meio).forEach(t => { trCurrent++; valorCurrent += t.valor; if (t.is_fraude) anomCurrent++ })
-      transactionsList.slice(meio).forEach(t => { trPrev++; valorPrev += t.valor; if (t.is_fraude) anomPrev++ })
-    }
-
-    const calcPerc = (atual: number, passado: number) => {
-      if (passado === 0) return atual > 0 ? 100 : 0
-      return ((atual - passado) / passado) * 100
-    }
+    const totalTransactionsReal = backendMetrics.total_transacoes || 0
+    const totalAnomaliesReal = backendMetrics.total_fraudes || 0
+    const totalMovido = backendMetrics.total_movimentado || 0
 
     const percAnomalias = totalTransactionsReal > 0 ? (totalAnomaliesReal / totalTransactionsReal) * 100 : 0
 
+    // Ocultar top usuários na visão global
     return {
       total_transactions: totalTransactionsReal,
       total_anomalies: totalAnomaliesReal,
       anomaly_percentage: percAnomalias,
       total_movimentado: totalMovido,
-      comparacao_transacoes: calcPerc(trCurrent, trPrev),
-      comparacao_anomalias: calcPerc(anomCurrent, anomPrev),
-      comparacao_aprovadas: calcPerc(aprovCurrent, aprovPrev),
-      comparacao_valor: calcPerc(valorCurrent, valorPrev),
+      
+      // As comparações mensais dependiam do histórico completo, por ora deixei em 0
+      comparacao_transacoes: 0,
+      comparacao_anomalias: 0,
+      comparacao_aprovadas: 0,
+      comparacao_valor: 0,
+      
       distribuicao_transacoes: [
         { name: 'Normal', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
         { name: 'Anomalia', value: totalAnomaliesReal }
       ],
-      volume_dias: volumeDiasOrdenado,
-      distribuicao_valores: Object.entries(valoresBuckets).map(([name, value]) => ({ name, value })),
+      volume_dias: volumeDias,
+      distribuicao_valores: distribuicaoValores,
       resultado_anomalias: [
         { name: 'Aprovada', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
         { name: 'Bloqueada', value: totalAnomaliesReal }
       ],
-      transacoes_hora: horasOrdenadas,
+      transacoes_hora: transacoesHora,
       top_usuarios: topUsuarios,
     }
   } catch (error) {
@@ -262,6 +162,8 @@ export async function fetchDashboard() {
     throw error
   }
 }
+
+
 
 // Health check
 export async function checkHealth() {
