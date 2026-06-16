@@ -305,6 +305,7 @@ class TransacaoRepository:
         data_inicio=None,
         data_fim=None,
         is_fraude=None,
+        search=None,
         skip: int = 0,
         limit: int = 50
     ):
@@ -355,6 +356,12 @@ class TransacaoRepository:
         if is_fraude is not None:
             query += " AND is_fraude = ?"
             params.append(1 if is_fraude else 0)
+
+        if search:
+            query += " AND (conta LIKE ? OR cidade LIKE ? OR estabelecimento LIKE ?)"
+            like_val = f"%{search}%"
+            params.extend([like_val, like_val, like_val])
+
         # Get total before pagination
         count_query = query.replace("SELECT *", "SELECT COUNT(*)")
         cursor.execute(count_query, params)

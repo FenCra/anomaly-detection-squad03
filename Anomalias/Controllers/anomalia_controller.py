@@ -135,6 +135,7 @@ def buscar_transacoes(
     data_inicio: str = Query(None),
     data_fim: str = Query(None),
     is_fraude: bool = Query(None),
+    search: str = Query(None),
     skip: int = Query(0),
     limit: int = Query(50)
 ):
@@ -150,6 +151,7 @@ def buscar_transacoes(
         data_inicio=data_inicio,
         data_fim=data_fim,
         is_fraude=is_fraude,
+        search=search,
         skip=skip,
         limit=limit
     )

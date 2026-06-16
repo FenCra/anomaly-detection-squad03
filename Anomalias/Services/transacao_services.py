@@ -116,6 +116,7 @@ class TransacaoService:
         data_inicio=None,
         data_fim=None,
         is_fraude=None,
+        search=None,
         skip=0,
         limit=50
     ):
@@ -131,6 +132,7 @@ class TransacaoService:
             data_inicio=data_inicio,
             data_fim=data_fim,
             is_fraude=is_fraude,
+            search=search,
             skip=skip,
             limit=limit
         )

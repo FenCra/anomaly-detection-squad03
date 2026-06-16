@@ -50,7 +50,7 @@ export async function fetchTransactions(params: Record<string, any> = {}): Promi
 
   // Copiar restante dos params (exceto status, limit, skip)
   Object.entries(params).forEach(([key, value]) => {
-    if (key === 'status' || key === 'limit' || key === 'skip' || key === 'search') return
+    if (key === 'status' || key === 'limit' || key === 'skip') return
     if (value === undefined || value === '' || value === 'all') return
     serverParams[key] = value
   })
@@ -66,16 +66,6 @@ export async function fetchTransactions(params: Record<string, any> = {}): Promi
     // O backend retorna { total: <COUNT real do banco>, dados: [...] }
     let data: any[] = responseData.dados || responseData.transacoes || []
     const serverTotal: number = responseData.total ?? data.length
-
-    // Filtro de search somente no client (backend ainda não suporta)
-    if (params.search) {
-      const q = params.search.toLowerCase()
-      data = data.filter((t: any) =>
-        (t.estabelecimento && t.estabelecimento.toLowerCase().includes(q)) ||
-        (t.conta && t.conta.toLowerCase().includes(q)) ||
-        (t.cidade && t.cidade.toLowerCase().includes(q))
-      )
-    }
 
     return { total: serverTotal, items: data }
   } catch (error) {
