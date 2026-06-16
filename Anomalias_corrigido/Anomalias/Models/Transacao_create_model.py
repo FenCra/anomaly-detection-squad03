@@ -3,7 +3,7 @@ from datetime import date, time
 from typing import Optional
 
 class TransacaoCreate(BaseModel):
-    
+    id: int
     valor: float
     data: date
     hora: time
@@ -20,6 +20,6 @@ class TransacaoCreate(BaseModel):
     estabelecimento: str
     tentativas: int
     ip_origem: str
-    is_fraude: bool = 0
-    motivo: str | None = None
+    is_fraude: bool = False
+    motivos: Optional[str] = None
     

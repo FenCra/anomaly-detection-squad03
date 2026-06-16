@@ -103,10 +103,17 @@ class PerfilRegras:
     def gerar_perfil(self, df, conta: str):
 
         if df is None or df.empty:
-            return {
-                "conta": conta,
-                "erro": "Sem dados suficientes para gerar perfil"
-            }
+           return {
+             "conta": conta,
+             "perfil_basico": {},
+             "comportamento": {},
+             "assinatura_financeira": {},
+             "zscore": {},
+             "gaussiana": {},
+             "geo_distancia": {},
+             "geo_ip": {},
+             "geo_velocidade": {}
+        }
 
         zscore = self.zscore_service.analisar_zscore(df)
         gaussiana = self.gaussiana_service.analisar_gaussiana(df)

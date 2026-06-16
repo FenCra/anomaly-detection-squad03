@@ -116,10 +116,12 @@ class TransacaoService:
             motivos.append("Transação dentro do perfil esperado")
 
         motivos = list(dict.fromkeys(motivos))
-        transacao.motivo = "; ".join(motivos)
+        transacao.motivos = "; ".join(motivos)
 
         self.repository.inserir_transacao(transacao)
-
+        resultado_insert = self.repository.inserir_transacao(transacao)
+        print(resultado_insert)
+        
         return {
             "status": "BLOQUEADA" if transacao.is_fraude else "APROVADA",
             "origem": origem,

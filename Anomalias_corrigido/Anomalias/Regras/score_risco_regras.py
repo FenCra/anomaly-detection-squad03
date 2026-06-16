@@ -11,12 +11,8 @@ class ScoreService:
         # PROTEÇÃO GERAL DO PERFIL
         # =====================================================
 
-        if not perfil or perfil.get("erro"):
-            return {
-                "score": 0,
-                "classificacao": "INDEFINIDO",
-                "motivos": ["Perfil inválido ou inexistente"]
-            }
+        if not perfil:
+           perfil = {}
 
         # =====================================================
         # ASSINATURA FINANCEIRA (SAFE)

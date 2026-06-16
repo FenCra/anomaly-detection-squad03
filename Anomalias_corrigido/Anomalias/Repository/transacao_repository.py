@@ -88,6 +88,7 @@ class TransacaoRepository:
             cursor.execute(
                 """
                 INSERT INTO transacoes (
+                    id,
                     valor,
                     data,
                     hora,
@@ -108,10 +109,11 @@ class TransacaoRepository:
                     motivos
                 )
                 VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                   ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )
                 """,
                 (
+                    transacao.id,
                     transacao.valor,
                     transacao.data,
                     transacao.hora,

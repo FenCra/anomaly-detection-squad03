@@ -21,4 +21,4 @@ class Transacao(BaseModel):
     tentativas: int
     ip_origem: str
     is_fraude: bool
-    motivo: str
+    motivos: str
