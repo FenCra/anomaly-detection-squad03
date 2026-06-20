@@ -41,6 +41,7 @@ export default function ChartCard({ title, data, type, colors, heightClass = 'h-
                 innerRadius={60}
                 fill="#8884d8"
                 dataKey="value"
+                name="Quantidade"
                 stroke="none"
               >
                 {data.map((entry, index) => (
@@ -55,7 +56,7 @@ export default function ChartCard({ title, data, type, colors, heightClass = 'h-
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} itemStyle={{ fontWeight: 700 }} />
-              <Line type="monotone" dataKey="value" stroke={chartColors[0]} strokeWidth={4} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6, strokeWidth: 0 }} />
+              <Line type="monotone" dataKey="value" name="Quantidade" stroke={chartColors[0]} strokeWidth={4} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6, strokeWidth: 0 }} />
             </LineChart>
           ) : type === 'horizontalBar' ? (
             <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
@@ -63,7 +64,7 @@ export default function ChartCard({ title, data, type, colors, heightClass = 'h-
               <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
               <YAxis dataKey="name" type="category" width={100} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 600 }} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: '#f9fafb' }} itemStyle={{ fontWeight: 700 }} />
-              <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={24}>
+              <Bar dataKey="value" name="Quantidade" radius={[0, 8, 8, 0]} barSize={24}>
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                 ))}
@@ -75,7 +76,7 @@ export default function ChartCard({ title, data, type, colors, heightClass = 'h-
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={10} />
               <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: '#f9fafb' }} itemStyle={{ fontWeight: 700 }} />
-              <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={32}>
+              <Bar dataKey="value" name="Quantidade" radius={[8, 8, 0, 0]} barSize={32}>
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
                 ))}

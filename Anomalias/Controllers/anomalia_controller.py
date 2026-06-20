@@ -1,12 +1,15 @@
 from fastapi import APIRouter
 from fastapi import Query
 
-from models.Transacao_model import Transacao
+from Models.Transacao_model import Transacao
 
+from Models.Transacao_create_model import (
+    TransacaoCreate
+)
 from Services.anomalias_services import (
     AnomaliasService
 )
-from Services.anomalias_estatistica_services import (
+from Regras.anomalias_estatistica_services import (
     AnomaliasEstatisticaService)
 
 from Services.transacao_services import (
@@ -17,22 +20,28 @@ from Services.localizacao_service import (
     LocalizacaoService
 )
 
-from Services.gaussiana_service import (
+from Regras.gaussiana_service import (
     GaussianaService
 )
 
-from Services.zscore_service import (
+from Regras.zscore_service import (
     ZScoreService
 )
+
+from Services.perfil_service import (
+    PerfilService
+)
+
+from Services.relatorio_services import (
+    RelatorioService
+) 
+
 
 router = APIRouter(
     prefix="/api/v1",
     tags=["Transações"]
 )
 
-# =========================================================
-# INSTÂNCIAS
-# =========================================================
 
 transacao_service = TransacaoService()
 
@@ -40,14 +49,73 @@ localizacao_service = LocalizacaoService()
 
 anomalias_service = AnomaliasService()
 
-estatistica_service = (AnomaliasEstatisticaService())
+estatistica_service = AnomaliasEstatisticaService()
   
 gaussiana_service = GaussianaService()
 
 zscore_service = ZScoreService()
 
+perfil_service = PerfilService()
 
-#criar o delete. update julgamento 
+relatorio_service = RelatorioService()
+
+# =========================================================
+# ROTAS ESTÁTICAS (devem vir ANTES das rotas com {conta})
+# =========================================================
+
+@router.get("/transacoes/contas")
+def listar_contas():
+
+    return transacao_service.listar_contas()
+
+
+@router.get("/transacoes/cidades")
+def listar_cidades():
+
+    return (
+        transacao_service
+        .listar_cidades()
+    )
+
+
+@router.get("/transacoes/search")
+def buscar_transacoes(
+
+    categoria: str = Query(None),
+    cidade: str = Query(None),
+    valor_min: float = Query(None),
+    valor_max: float = Query(None),
+    tipo_transacao: str = Query(None),
+    dispositivo: str = Query(None),
+    data_inicio: str = Query(None),
+    data_fim: str = Query(None),
+    conta: str = Query(None),
+    is_fraude: bool = Query(None),
+    search: str = Query(None),
+    skip: int = Query(0),
+    limit: int = Query(50)
+):
+
+    return transacao_service.buscar_transacoes(
+        categoria=categoria,
+        cidade=cidade,
+        valor_min=valor_min,
+        valor_max=valor_max,
+        tipo_transacao=tipo_transacao,
+        dispositivo=dispositivo,
+        data_inicio=data_inicio,
+        data_fim=data_fim,
+        conta=conta,
+        is_fraude=is_fraude,
+        search=search,
+        skip=skip,
+        limit=limit
+    )
+
+
+# =========================================================
+# ROTAS DINÂMICAS COM {conta}
+# =========================================================
 
 @router.get("/transacoes")
 def listar_transacoes():
@@ -55,20 +123,23 @@ def listar_transacoes():
     return transacao_service.listar_transacoes()
 
 
-@router.get("/transacoes/contas")
-def listar_contas():
+@router.get("/transacoes/{conta}")
+def buscar_transacao_por_conta(
+    conta: str
+):
 
-    return transacao_service.listar_contas()
+    return transacao_service.buscar_transacao_por_conta(
+        conta
+    )
+
 
 @router.post("/transacoes")
 def criar_transacao(
-    transacao: Transacao
+    transacao: TransacaoCreate
 ):
-
     return transacao_service.criar_transacao(
         transacao
     )
-
 
 
 @router.put("/transacoes/{id}/fraude")
@@ -86,10 +157,6 @@ def atualizar_status_fraude(
     )
 
 
-# =========================================================
-# DELETAR TRANSAÇÃO
-# =========================================================
-
 @router.delete("/transacoes/{id}")
 def deletar_transacao(
     id: int
@@ -100,93 +167,30 @@ def deletar_transacao(
         .deletar_transacao(id)
     )
 
-@router.get("/dashboard/metrics")
-def dashboard_metrics():
-
-    return (
-        transacao_service
-        .dashboard_metrics()
-    )
-
 
 # =========================================================
-# AGREGAÇÕES GLOBAIS (DASHBOARD)
+# PERFIL — Bug corrigido: nome duplicado removido,
+# barra inicial adicionada em /transacoes/perfil/{conta}
 # =========================================================
 
-@router.get("/analytics/global/volume_dias")
-def buscar_volume_dias():
-    return transacao_service.buscar_volume_dias()
-
-@router.get("/analytics/global/distribuicao_valores")
-def buscar_distribuicao_valores():
-    return transacao_service.buscar_distribuicao_valores()
-
-@router.get("/analytics/global/transacoes_hora")
-def buscar_transacoes_hora_global():
-    return transacao_service.buscar_transacoes_hora_global()
-
-@router.get("/analytics/global/top_usuarios")
-def buscar_top_usuarios_anomalias():
-    return transacao_service.buscar_top_usuarios_anomalias()
 
 
-@router.get("/transacoes/cidades")
-def listar_cidades():
-
-    return (
-        transacao_service
-        .listar_cidades()
-    )
-
-
-
-# =========================================================
-# FILTROS
-# =========================================================
-
-@router.get("/transacoes/search")
-def buscar_transacoes(
-    conta: str = Query(None),
-    categoria: str = Query(None),
-    cidade: str = Query(None),
-    valor_min: float = Query(None),
-    valor_max: float = Query(None),
-    tipo_transacao: str = Query(None),
-    dispositivo: str = Query(None),
-    data_inicio: str = Query(None),
-    data_fim: str = Query(None),
-    is_fraude: bool = Query(None),
-    search: str = Query(None),
-    skip: int = Query(0),
-    limit: int = Query(50)
-):
-
-    return transacao_service.buscar_transacoes(
-        conta=conta,
-        categoria=categoria,
-        cidade=cidade,
-        valor_min=valor_min,
-        valor_max=valor_max,
-        tipo_transacao=tipo_transacao,
-        dispositivo=dispositivo,
-        data_inicio=data_inicio,
-        data_fim=data_fim,
-        is_fraude=is_fraude,
-        search=search,
-        skip=skip,
-        limit=limit
-    )
-
-# Rota dinâmica movida para baixo das estáticas para evitar conflito de rotas
-@router.get("/transacoes/{conta}")
-def buscar_transacao_por_conta(
+@router.get("/transacoes/perfil/{conta}")
+def perfil_comportamental(
     conta: str
 ):
+    return (
 
-    return transacao_service.buscar_transacao_por_conta(
-        conta
+        perfil_service
+        .perfil_comportamental(
+            conta
+        )
     )
-#errado
+
+
+# =========================================================
+# ZSCORE / GAUSSIANA
+# =========================================================
 
 @router.get("/zscore/{conta}")
 def calcular_zscore(
@@ -198,7 +202,7 @@ def calcular_zscore(
         .zscore_por_conta(conta)
     )
 
-#errado
+
 @router.get("/gaussiana/{conta}")
 def gaussiana(
     conta: str
@@ -208,6 +212,11 @@ def gaussiana(
         anomalias_service
         .gaussiana_por_conta(conta)
     )
+
+
+# =========================================================
+# GEO
+# =========================================================
 
 @router.get("/distancia/{conta}")
 def geo_distancia(
@@ -219,9 +228,6 @@ def geo_distancia(
         .geo_distancia(conta)
     )
 
-# =========================================================
-# GEO IP
-# =========================================================
 
 @router.get("/ip/{conta}")
 def geo_ip(
@@ -233,9 +239,6 @@ def geo_ip(
         .geo_ip(conta)
     )
 
-# =========================================================
-# GEO VELOCIDADE
-# =========================================================
 
 @router.get("/velocidade/{conta}")
 def geo_velocidade(
@@ -248,10 +251,18 @@ def geo_velocidade(
     )
 
 
+# =========================================================
+# DASHBOARD / ESTATÍSTICAS
+# =========================================================
 
-# =========================================================
-# ESTATÍSTICAS
-# =========================================================
+@router.get("/dashboard/metrics")
+def dashboard_metrics():
+
+    return (
+        transacao_service
+        .dashboard_metrics()
+    )
+
 
 @router.get("/analytics/fraud/cities")
 def cidades_mais_anomalas():
@@ -296,3 +307,28 @@ def numero_de_tentativas():
         estatistica_service
         .numero_de_tentativas()
     )
+
+
+@router.get("/relatorio")
+def relatorio_genai():
+    return relatorio_service.relatorio_gerado()
+
+# =========================================================
+# DASHBOARD GLOBAL AGGREGATIONS
+# =========================================================
+
+@router.get("/analytics/global/volume_dias")
+def buscar_volume_dias():
+    return transacao_service.buscar_volume_dias()
+
+@router.get("/analytics/global/distribuicao_valores")
+def buscar_distribuicao_valores():
+    return transacao_service.buscar_distribuicao_valores()
+
+@router.get("/analytics/global/transacoes_hora")
+def buscar_transacoes_hora_global():
+    return transacao_service.buscar_transacoes_hora_global()
+
+@router.get("/analytics/global/top_usuarios")
+def buscar_top_usuarios_anomalias():
+    return transacao_service.buscar_top_usuarios_anomalias()

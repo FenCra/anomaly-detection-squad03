@@ -1,5 +1,5 @@
 import pyodbc
-
+#biblioteca antiga
 
 def get_connection():
     return pyodbc.connect(

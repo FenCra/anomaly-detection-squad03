@@ -2,8 +2,12 @@ from Repository.transacao_repository import (
     TransacaoRepository
 )
 
-from Services.geo_services import (
+from Regras.geo_services import (
     GeoServices
+)
+
+from Regras.geo_services_graficos import (
+    GeoGraficoService
 )
 
 
@@ -19,11 +23,15 @@ class LocalizacaoService:
             GeoServices()
         )
 
+        self.geo_grafico_service = (
+            GeoGraficoService()
+        )
+
     # =====================================================
     # DISTÂNCIA
     # =====================================================
 
-    def geo_distancia(
+    def analisar_distancia(
         self,
         conta: str
     ):
@@ -39,8 +47,28 @@ class LocalizacaoService:
         return (
 
             self.geo_service
-            .geo_distancia(
-                df,
+            .analisar_distancia(
+                df
+            )
+        )
+
+    def geo_distancia(
+        self,
+        conta: str
+    ):
+
+        resultado = (
+
+            self.analisar_distancia(
+                conta
+            )
+        )
+
+        return (
+
+            self.geo_grafico_service
+            .grafico_distancia(
+                resultado,
                 conta
             )
         )
@@ -49,7 +77,7 @@ class LocalizacaoService:
     # GEO IP
     # =====================================================
 
-    def geo_ip(
+    def analisar_ip(
         self,
         conta: str
     ):
@@ -65,8 +93,28 @@ class LocalizacaoService:
         return (
 
             self.geo_service
-            .geo_ip(
-                df,
+            .analisar_ip(
+                df
+            )
+        )
+
+    def geo_ip(
+        self,
+        conta: str
+    ):
+
+        resultado = (
+
+            self.analisar_ip(
+                conta
+            )
+        )
+
+        return (
+
+            self.geo_grafico_service
+            .grafico_ip(
+                resultado,
                 conta
             )
         )
@@ -75,7 +123,7 @@ class LocalizacaoService:
     # GEO VELOCIDADE
     # =====================================================
 
-    def geo_velocidade(
+    def analisar_velocidade(
         self,
         conta: str
     ):
@@ -91,8 +139,28 @@ class LocalizacaoService:
         return (
 
             self.geo_service
-            .geo_velocidade(
-                df,
+            .analisar_velocidade(
+                df
+            )
+        )
+
+    def geo_velocidade(
+        self,
+        conta: str
+    ):
+
+        resultado = (
+
+            self.analisar_velocidade(
+                conta
+            )
+        )
+
+        return (
+
+            self.geo_grafico_service
+            .grafico_velocidade(
+                resultado,
                 conta
             )
         )
