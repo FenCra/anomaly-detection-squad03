@@ -32,6 +32,10 @@ from Services.perfil_service import (
     PerfilService
 )
 
+from Services.relatorio_services import (
+    RelatorioService
+) 
+
 
 router = APIRouter(
     prefix="/api/v1",
@@ -53,6 +57,7 @@ zscore_service = ZScoreService()
 
 perfil_service = PerfilService()
 
+relatorio_service = RelatorioService()
 
 # =========================================================
 # ROTAS ESTÁTICAS (devem vir ANTES das rotas com {conta})
@@ -174,20 +179,9 @@ def deletar_transacao(
 # barra inicial adicionada em /transacoes/perfil/{conta}
 # =========================================================
 
+
+
 @router.get("/transacoes/perfil/{conta}")
-def perfil_comportamental_por_transacoes(
-    conta: str
-):
-
-    return (
-        perfil_service
-        .perfil_comportamental(
-            conta
-        )
-    )
-
-
-@router.get("/perfil/{conta}")
 def perfil_comportamental(
     conta: str
 ):
@@ -319,3 +313,8 @@ def numero_de_tentativas():
         estatistica_service
         .numero_de_tentativas()
     )
+
+
+@router.get("/relatorio")
+def relatorio_genai():
+    return relatorio_service.relatorio_gerado()
