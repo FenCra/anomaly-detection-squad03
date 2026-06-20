@@ -353,6 +353,19 @@ export default function TransactionsPage() {
           >
             Somente Anomalias
           </button>
+
+          {Object.keys(filters).length > 0 && (
+            <button
+              onClick={handleClearFilters}
+              className="px-4 md:px-5 py-2.5 border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-600 rounded-full text-xs md:text-sm font-bold transition-colors w-full md:w-auto flex items-center justify-center gap-2"
+              title="Limpar todos os filtros"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Limpar Filtros
+            </button>
+          )}
         </div>
       </div>
 

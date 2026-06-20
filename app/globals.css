@@ -26,3 +26,13 @@ button {
 input, select, textarea {
   font-family: inherit;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-modal-content, #report-modal-content * {
+    visibility: visible;
+  }
+}
+

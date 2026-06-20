@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import clsx from 'clsx'
 
 import { DashboardIcon, TransactionsIcon, FlaskIcon } from './Icons'
+import ReportModal from './ReportModal'
 
 const menuItems = [
   { href: '/', label: 'Dashboard', icon: DashboardIcon },
@@ -19,6 +21,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   return (
       <aside className={clsx(
@@ -62,6 +65,19 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </nav>
 
+        {/* Botão Gerar Relatório IA (colocado logo abaixo de Laboratório ML) */}
+        <div className="px-4 mb-4">
+          <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-bb-blue text-white rounded-lg hover:bg-bb-blue/90 transition-colors font-bold shadow-md shadow-bb-blue/20"
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>Gerar Relatório IA</span>
+          </button>
+        </div>
+
         {/* User Profile Footer */}
         <div className="p-6 border-t border-gray-200 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-300 shrink-0"></div>
@@ -73,6 +89,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <p className="text-xs text-gray-500 truncate">usersquad3@gmail.com</p>
           </div>
         </div>
+        {/* Modal do Relatório */}
+        <ReportModal 
+          isOpen={isReportModalOpen} 
+          onClose={() => setIsReportModalOpen(false)} 
+        />
       </aside>
   )
 }
