@@ -20,7 +20,7 @@ plt.rcParams['font.size'] = 11
 plt.rcParams['axes.titlesize'] = 14    
 plt.rcParams['axes.labelsize'] = 12
 
-GOOGLE_API_KEY = "AQ.Ab8RN6LYOTF1YsrhF1LiBT4AA0w_WgAhZ_zCwT8fzfwhV2l4VQ"
+GOOGLE_API_KEY = "AQ.Ab8RN6LEZBWbQk85BncwXY0dsTLgUNlaDJ6HEbJm7Oah2PyHKA"
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
