@@ -126,33 +126,35 @@ export async function fetchDashboard() {
     const topUsuarios = topUsuariosRes.ok ? await topUsuariosRes.json() : []
 
     const totalTransactionsReal = backendMetrics.total_transacoes || 0
-    const totalAnomaliesReal = backendMetrics.total_fraudes || 0
-    const totalMovido = backendMetrics.total_movimentado || 0
+    const totalAnomaliesGlobal = backendMetrics.total_fraudes_global || 0
+    const totalMovidoGlobal = backendMetrics.total_movimentado_global || 0
 
-    const percAnomalias = totalTransactionsReal > 0 ? (totalAnomaliesReal / totalTransactionsReal) * 100 : 0
+    const totalTransactionsGlobal = backendMetrics.total_transacoes_global || 0
+
+    const percAnomalias = totalTransactionsGlobal > 0 ? (totalAnomaliesGlobal / totalTransactionsGlobal) * 100 : 0
 
     // Ocultar top usuários na visão global
     return {
       total_transactions: totalTransactionsReal,
-      total_anomalies: totalAnomaliesReal,
+      total_anomalies: totalAnomaliesGlobal,
       anomaly_percentage: percAnomalias,
-      total_movimentado: totalMovido,
+      total_movimentado: totalMovidoGlobal,
+      total_transactions_global: totalTransactionsGlobal,
       
-      // As comparações mensais dependiam do histórico completo, por ora deixei em 0
-      comparacao_transacoes: 0,
+      comparacao_transacoes: backendMetrics.comparacao_transacoes || 0,
       comparacao_anomalias: 0,
       comparacao_aprovadas: 0,
       comparacao_valor: 0,
       
       distribuicao_transacoes: [
-        { name: 'Normal', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
-        { name: 'Anomalia', value: totalAnomaliesReal }
+        { name: 'Normal', value: Math.max(0, totalTransactionsGlobal - totalAnomaliesGlobal) },
+        { name: 'Anomalia', value: totalAnomaliesGlobal }
       ],
       volume_dias: volumeDias,
       distribuicao_valores: distribuicaoValores,
       resultado_anomalias: [
-        { name: 'Aprovada', value: Math.max(0, totalTransactionsReal - totalAnomaliesReal) },
-        { name: 'Bloqueada', value: totalAnomaliesReal }
+        { name: 'Aprovada', value: Math.max(0, totalTransactionsGlobal - totalAnomaliesGlobal) },
+        { name: 'Bloqueada', value: totalAnomaliesGlobal }
       ],
       transacoes_hora: transacoesHora,
       top_usuarios: topUsuarios,

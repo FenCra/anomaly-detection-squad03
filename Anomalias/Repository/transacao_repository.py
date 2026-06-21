@@ -251,26 +251,44 @@ class TransacaoRepository:
 
         cursor.execute("""
             SELECT
-                COUNT(*) as total_transacoes,
-                SUM(valor) as total_movimentado,
-                SUM(
-                    CASE
-                        WHEN is_fraude = 1
-                        THEN 1
-                        ELSE 0
-                    END
-                ) as total_fraudes
+                COUNT(*) as total_transacoes_global,
+                SUM(CASE WHEN is_fraude = 1 THEN 1 ELSE 0 END) as total_fraudes_global,
+                SUM(valor) as total_movimentado_global,
+
+                -- Mês Atual
+                SUM(CASE WHEN MONTH(data) = MONTH(GETDATE()) AND YEAR(data) = YEAR(GETDATE()) THEN 1 ELSE 0 END) as transacoes_mes,
+                SUM(CASE WHEN MONTH(data) = MONTH(GETDATE()) AND YEAR(data) = YEAR(GETDATE()) AND is_fraude = 1 THEN 1 ELSE 0 END) as fraudes_mes,
+                SUM(CASE WHEN MONTH(data) = MONTH(GETDATE()) AND YEAR(data) = YEAR(GETDATE()) THEN valor ELSE 0 END) as valor_mes,
+
+                -- Mês Anterior
+                SUM(CASE WHEN MONTH(data) = MONTH(DATEADD(month, -1, GETDATE())) AND YEAR(data) = YEAR(DATEADD(month, -1, GETDATE())) THEN 1 ELSE 0 END) as transacoes_mes_ant,
+                SUM(CASE WHEN MONTH(data) = MONTH(DATEADD(month, -1, GETDATE())) AND YEAR(data) = YEAR(DATEADD(month, -1, GETDATE())) AND is_fraude = 1 THEN 1 ELSE 0 END) as fraudes_mes_ant,
+                SUM(CASE WHEN MONTH(data) = MONTH(DATEADD(month, -1, GETDATE())) AND YEAR(data) = YEAR(DATEADD(month, -1, GETDATE())) THEN valor ELSE 0 END) as valor_mes_ant
             FROM transacoes
         """)
 
         row = cursor.fetchone()
-
         conn.close()
 
+        def calc_perc(atual, anterior):
+            atual_f = float(atual) if atual else 0.0
+            anterior_f = float(anterior) if anterior else 0.0
+            if anterior_f == 0.0:
+                return 100.0 if atual_f > 0 else 0.0
+            return ((atual_f - anterior_f) / anterior_f) * 100.0
+
         return {
-            "total_transacoes": row[0],
-            "total_movimentado": float(row[1] or 0),
-            "total_fraudes": row[2]
+            "total_transacoes_global": row.total_transacoes_global or 0,
+            "total_fraudes_global": row.total_fraudes_global or 0,
+            "total_movimentado_global": row.total_movimentado_global or 0,
+
+            "total_transacoes": row.transacoes_mes or 0,
+            "total_fraudes": row.fraudes_mes or 0,
+            "total_movimentado": row.valor_mes or 0,
+
+            "comparacao_transacoes": calc_perc(row.transacoes_mes, row.transacoes_mes_ant),
+            "comparacao_anomalias": calc_perc(row.fraudes_mes, row.fraudes_mes_ant),
+            "comparacao_valor": calc_perc(row.valor_mes, row.valor_mes_ant)
         }
 
     def query_transacoes(

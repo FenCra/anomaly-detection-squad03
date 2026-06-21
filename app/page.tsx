@@ -11,6 +11,7 @@ interface DashboardData {
   total_anomalies: number
   anomaly_percentage: number
   total_movimentado: number
+  total_transactions_global: number
 
   comparacao_transacoes: number
   comparacao_anomalias: number
@@ -79,12 +80,11 @@ export default function Dashboard() {
 
   const varTx = formatVar(data.comparacao_transacoes)
   const varAnomalias = formatVar(data.comparacao_anomalias, true)
-  const varAprovadas = formatVar(data.comparacao_aprovadas)
   const varValor = formatVar(data.comparacao_valor)
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <KPICard
           title="Transações Deste Mês"
           value={data.total_transactions}
@@ -101,7 +101,6 @@ export default function Dashboard() {
           comparisonText={varAnomalias.text}
           comparisonColorClass={varAnomalias.color}
         />
-
         <KPICard
           title="Valor Movimentado"
           value={`R$ ${(data.total_movimentado > 1000 ? (data.total_movimentado / 1000).toFixed(1) + 'K' : data.total_movimentado.toFixed(2)).replace('.', ',')}`} 
@@ -109,6 +108,14 @@ export default function Dashboard() {
           iconColorClass="text-green-600"
           comparisonText={varValor.text}
           comparisonColorClass={varValor.color}
+        />
+        <KPICard
+          title="Total Histórico"
+          value={data.total_transactions_global}
+          icon={<CheckCircleIcon />}
+          iconColorClass="text-purple-600"
+          comparisonText="Desde 2025"
+          comparisonColorClass="text-gray-500"
         />
       </div>
 
