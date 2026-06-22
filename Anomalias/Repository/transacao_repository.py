@@ -105,11 +105,10 @@ class TransacaoRepository:
                     estabelecimento,
                     tentativas,
                     ip_origem,
-                    is_fraude,
-                    motivos
+                    is_fraude
                 )
                 VALUES (
-                   ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                   ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )
                 """,
                 (
@@ -130,8 +129,7 @@ class TransacaoRepository:
                     transacao.estabelecimento,
                     transacao.tentativas,
                     transacao.ip_origem,
-                    int(transacao.is_fraude),
-                    transacao.motivos
+                    int(transacao.is_fraude)
                 )
             )
 

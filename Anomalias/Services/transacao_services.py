@@ -118,7 +118,6 @@ class TransacaoService:
         motivos = list(dict.fromkeys(motivos))
         transacao.motivos = "; ".join(motivos)
 
-        self.repository.inserir_transacao(transacao)
         resultado_insert = self.repository.inserir_transacao(transacao)
         print(resultado_insert)
         

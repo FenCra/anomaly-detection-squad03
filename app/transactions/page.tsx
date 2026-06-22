@@ -8,14 +8,17 @@ import CreateTransactionModal from '@/components/CreateTransactionModal'
 import { SearchIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from '@/components/Icons'
 
 const CATEGORIES = [
-  'Alimentacao',
-  'Transporte',
-  'Saude',
-  'Educacao',
-  'Compras',
-  'Lazer',
-  'Utilidades',
-  'Investimento',
+  'transporte',
+  'moradia',
+  'alimentacao',
+  'supermercado',
+  'eletronicos',
+  'veiculos',
+  'saude',
+  'educacao',
+  'vestuario',
+  'lazer',
+  'servicos'
 ]
 
 const TRANSACTION_TYPES = ['debito', 'credito', 'transferencia']

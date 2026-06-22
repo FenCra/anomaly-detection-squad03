@@ -5,28 +5,17 @@ import { useForm } from 'react-hook-form'
 import { createTransaction } from '@/lib/api'
 
 const CATEGORIES = [
-  'Alimentacao',
-  'Transporte',
-  'Saude',
-  'Educacao',
-  'Compras',
-  'Lazer',
-  'Utilidades',
-  'Investimento',
-]
-
-const CITIES = [
-  'Sao Paulo',
-  'Rio de Janeiro',
-  'Belo Horizonte',
-  'Curitiba',
-  'Salvador',
-  'Brasilia',
-  'Manaus',
-  'Recife',
-  'Porto Alegre',
-  'Fortaleza',
-  'Campinas',
+  'transporte',
+  'moradia',
+  'alimentacao',
+  'supermercado',
+  'eletronicos',
+  'veiculos',
+  'saude',
+  'educacao',
+  'vestuario',
+  'lazer',
+  'servicos'
 ]
 
 const TRANSACTION_TYPES = ['debito', 'credito', 'transferencia']
@@ -165,6 +154,7 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
                 <label className="block text-sm font-medium text-gray-700 mb-2">Hora *</label>
                 <input
                   type="time"
+                  step="1"
                   {...register('hora', { required: 'Campo obrigatório' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
@@ -193,17 +183,12 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Cidade *</label>
-                <select
+                <input
+                  type="text"
+                  placeholder="Digite a cidade"
                   {...register('cidade', { required: 'Campo obrigatório' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Selecione...</option>
-                  {CITIES.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
+                />
                 {errors.cidade && (
                   <p className="text-red-500 text-xs mt-1">{errors.cidade.message}</p>
                 )}
