@@ -15,62 +15,66 @@ class ScoreService:
            perfil = {}
 
         # =====================================================
-        # ASSINATURA FINANCEIRA (SAFE)
+        # PROTEÇÃO DE CONTA NOVA (COLD START)
         # =====================================================
+        
+        perfil_basico = perfil.get("perfil_basico", {})
+        is_conta_nova = perfil_basico.get("quantidade_transacoes", 0) == 0
 
-        assinatura = perfil.get("assinatura_financeira", {})
+        if not is_conta_nova:
+            # =====================================================
+            # ASSINATURA FINANCEIRA (SAFE)
+            # =====================================================
 
-        valor_habitual_max = assinatura.get("valor_habitual_max", 0)
+            assinatura = perfil.get("assinatura_financeira", {})
 
-        if getattr(transacao, "valor", 0) > valor_habitual_max:
-            score += 30
-            motivos.append("Valor acima do padrão financeiro")
+            valor_habitual_max = assinatura.get("valor_habitual_max", 0)
 
-        # =====================================================
-        # COMPORTAMENTO (SAFE)
-        # =====================================================
+            if getattr(transacao, "valor", 0) > valor_habitual_max:
+                score += 30
+                motivos.append("Valor acima do padrão financeiro")
 
-        comportamento = perfil.get("comportamento", {})
+            # =====================================================
+            # COMPORTAMENTO (SAFE)
+            # =====================================================
 
-        # -------- HORÁRIO --------
+            comportamento = perfil.get("comportamento", {})
 
-        horario_predominante = (
-            str(comportamento.get("horario_predominante", "00h"))
-            .replace("h", "")
-        )
+            # -------- HORÁRIO --------
 
-        hora_transacao = str(pd.to_datetime(transacao.hora, errors="coerce").hour)
+            horario_predominante = str(comportamento.get("horario_predominante", "00h")).replace("h", "")
+            hora_transacao = str(pd.to_datetime(transacao.hora, errors="coerce").hour)
 
-        if hora_transacao != horario_predominante:
-            score += 15
-            motivos.append("Horário incomum")
+            if horario_predominante != "None" and hora_transacao != horario_predominante:
+                score += 15
+                motivos.append("Horário incomum")
 
-        # -------- CIDADE --------
+            # -------- CIDADE --------
 
-        cidade_pred = (comportamento.get("cidade_predominante") or "").lower()
-        cidade_trans = (getattr(transacao, "cidade", "") or "").lower()
+            cidade_pred = (comportamento.get("cidade_predominante") or "").lower()
+            cidade_trans = (getattr(transacao, "cidade", "") or "").lower()
 
-        if cidade_trans and cidade_trans != cidade_pred:
-            score += 20
-            motivos.append("Cidade incomum")
+            if cidade_pred and cidade_trans and cidade_trans != cidade_pred:
+                score += 20
+                motivos.append("Cidade incomum")
 
-        # -------- DISPOSITIVO --------
+            # -------- DISPOSITIVO --------
 
-        dispositivo_pred = (comportamento.get("dispositivo_predominante") or "").lower()
-        dispositivo_trans = (getattr(transacao, "dispositivo", "") or "").lower()
+            dispositivo_pred = (comportamento.get("dispositivo_predominante") or "").lower()
+            dispositivo_trans = (getattr(transacao, "dispositivo", "") or "").lower()
 
-        if dispositivo_trans and dispositivo_trans != dispositivo_pred:
-            score += 20
-            motivos.append("Dispositivo diferente do habitual")
+            if dispositivo_pred and dispositivo_trans and dispositivo_trans != dispositivo_pred:
+                score += 20
+                motivos.append("Dispositivo diferente do habitual")
 
-        # -------- CATEGORIA --------
+            # -------- CATEGORIA --------
 
-        categoria_pred = (comportamento.get("categoria_predominante") or "").lower()
-        categoria_trans = (getattr(transacao, "categoria", "") or "").lower()
+            categoria_pred = (comportamento.get("categoria_predominante") or "").lower()
+            categoria_trans = (getattr(transacao, "categoria", "") or "").lower()
 
-        if categoria_trans and categoria_trans != categoria_pred:
-            score += 10
-            motivos.append("Categoria incomum")
+            if categoria_pred and categoria_trans and categoria_trans != categoria_pred:
+                score += 10
+                motivos.append("Categoria incomum")
 
         # =====================================================
         # TENTATIVAS

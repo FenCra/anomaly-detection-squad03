@@ -180,8 +180,8 @@ class RelatorioService:
             )
             return response.text
         except Exception as e:
-            if "429" in str(e):
-                print("Limite da API atingido. Aguardando 10 segundos para tentar novamente...")
+            if "429" in str(e) or "503" in str(e):
+                print("Limite da API atingido ou sobrecarga. Aguardando 10 segundos para tentar novamente...")
                 time.sleep(10)
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
