@@ -5,7 +5,6 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-
 load_dotenv()
 import traceback
 from fastapi import HTTPException
