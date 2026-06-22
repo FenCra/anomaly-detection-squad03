@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+node_modules
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Environment
+.env
+.env.local
+.env.*.local
+Anomalias/.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agents
+/.agents
+
+# Documentos não importantes
+DASHBOARD_BRIEFING.md
+ENTREGA_PARCIAL_RII_GROWUP_26.1.md
+software - Ana Carla (Atual).docx.md
+
