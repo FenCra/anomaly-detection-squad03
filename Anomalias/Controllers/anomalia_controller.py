@@ -78,6 +78,19 @@ def listar_cidades():
     )
 
 
+@router.get("/transacoes/categorias")
+def listar_categorias():
+    return transacao_service.listar_categorias()
+
+@router.get("/transacoes/tipos")
+def listar_tipos_transacao():
+    return transacao_service.listar_tipos_transacao()
+
+@router.get("/transacoes/dispositivos")
+def listar_dispositivos():
+    return transacao_service.listar_dispositivos()
+
+
 @router.get("/transacoes/search")
 def buscar_transacoes(
 

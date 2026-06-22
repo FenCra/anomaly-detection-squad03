@@ -61,6 +61,15 @@ class TransacaoService:
             .get_contas()
         )
 
+    def listar_categorias(self):
+        return self.repository.get_categorias()
+
+    def listar_tipos_transacao(self):
+        return self.repository.get_tipos_transacao()
+
+    def listar_dispositivos(self):
+        return self.repository.get_dispositivos()
+
     def dashboard_metrics(self):
 
         return (

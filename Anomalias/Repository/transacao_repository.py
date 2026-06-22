@@ -67,7 +67,7 @@ class TransacaoRepository:
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT TOP 100 conta FROM transacoes"
+            "SELECT DISTINCT conta FROM transacoes WHERE conta IS NOT NULL"
         )
 
         contas = [row[0] for row in cursor.fetchall()]
@@ -75,9 +75,33 @@ class TransacaoRepository:
         conn.close()
 
         return {
-            "mensagem": "Retornando as 100 primeiras contas",
+            "mensagem": "Retornando as contas",
             "contas": contas
         }
+
+    def get_categorias(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT categoria FROM transacoes WHERE categoria IS NOT NULL")
+        resultados = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return {"categorias": resultados}
+
+    def get_tipos_transacao(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT tipo_transacao FROM transacoes WHERE tipo_transacao IS NOT NULL")
+        resultados = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return {"tipos_transacao": resultados}
+
+    def get_dispositivos(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT dispositivo FROM transacoes WHERE dispositivo IS NOT NULL")
+        resultados = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return {"dispositivos": resultados}
 
     def inserir_transacao(self, transacao):
 
@@ -368,11 +392,8 @@ class TransacaoRepository:
             count_query += " AND (conta LIKE ? OR cidade LIKE ? OR estabelecimento LIKE ?)"
             params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
 
-        # Primeiro, obtemos o total de itens para o frontend (paginação)
         cursor.execute(count_query, params)
         total_items = cursor.fetchone()[0]
-
-        # Segundo, aplicamos a paginação
         query += " ORDER BY data DESC, hora DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
         params.extend([skip, limit])
 

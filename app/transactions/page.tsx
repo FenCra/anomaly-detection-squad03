@@ -7,22 +7,6 @@ import CreateTransactionModal from '@/components/CreateTransactionModal'
 
 import { SearchIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from '@/components/Icons'
 
-const CATEGORIES = [
-  'transporte',
-  'moradia',
-  'alimentacao',
-  'supermercado',
-  'eletronicos',
-  'veiculos',
-  'saude',
-  'educacao',
-  'vestuario',
-  'lazer',
-  'servicos'
-]
-
-const TRANSACTION_TYPES = ['debito', 'credito', 'transferencia']
-const DEVICES = ['celular', 'web', 'caixa', 'smartwatch']
 
 interface Filters {
   categoria?: string
@@ -54,6 +38,9 @@ export default function TransactionsPage() {
   const [total, setTotal] = useState(0)
   const [contasDisponiveis, setContasDisponiveis] = useState<string[]>([])
   const [cidadesDisponiveis, setCidadesDisponiveis] = useState<string[]>([])
+  const [categoriasDisponiveis, setCategoriasDisponiveis] = useState<string[]>([])
+  const [tiposDisponiveis, setTiposDisponiveis] = useState<string[]>([])
+  const [dispositivosDisponiveis, setDispositivosDisponiveis] = useState<string[]>([])
   const [contaDropdownOpen, setContaDropdownOpen] = useState(false)
   const [contaSearch, setContaSearch] = useState('')
 
@@ -78,6 +65,33 @@ export default function TransactionsPage() {
         }
       })
       .catch(err => console.error("Falha ao buscar cidades dinamicamente:", err))
+
+    fetch('/api/ml/transacoes/categorias')
+      .then(res => res.json())
+      .then(data => {
+        if (data.categorias && Array.isArray(data.categorias)) {
+          setCategoriasDisponiveis(data.categorias.sort())
+        }
+      })
+      .catch(err => console.error("Falha ao buscar categorias:", err))
+
+    fetch('/api/ml/transacoes/tipos')
+      .then(res => res.json())
+      .then(data => {
+        if (data.tipos_transacao && Array.isArray(data.tipos_transacao)) {
+          setTiposDisponiveis(data.tipos_transacao.sort())
+        }
+      })
+      .catch(err => console.error("Falha ao buscar tipos:", err))
+
+    fetch('/api/ml/transacoes/dispositivos')
+      .then(res => res.json())
+      .then(data => {
+        if (data.dispositivos && Array.isArray(data.dispositivos)) {
+          setDispositivosDisponiveis(data.dispositivos.sort())
+        }
+      })
+      .catch(err => console.error("Falha ao buscar dispositivos:", err))
   }, [])
 
   const loadTransactions = async (activeFilters: Filters, page: number, size: number) => {
@@ -241,7 +255,19 @@ export default function TransactionsPage() {
               onChange={(e) => handleFilterChange('categoria', e.target.value)}
             >
               <option value="all">Categoria</option>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {categoriasDisponiveis.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
+            </select>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
+          </div>
+
+          <div className="relative">
+            <select
+              className="w-full appearance-none px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 pr-8"
+              value={filters.tipo_transacao || 'all'}
+              onChange={(e) => handleFilterChange('tipo_transacao', e.target.value)}
+            >
+              <option value="all">Todos os tipos</option>
+              {tiposDisponiveis.map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
             </select>
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-gray-400">▼</span>
           </div>

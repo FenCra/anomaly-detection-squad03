@@ -1,26 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { createTransaction } from '@/lib/api'
-
-const CATEGORIES = [
-  'transporte',
-  'moradia',
-  'alimentacao',
-  'supermercado',
-  'eletronicos',
-  'veiculos',
-  'saude',
-  'educacao',
-  'vestuario',
-  'lazer',
-  'servicos'
-]
-
-const TRANSACTION_TYPES = ['debito', 'credito', 'transferencia']
-const DEVICES = ['celular', 'web', 'caixa', 'smartwatch']
-
 interface CreateTransactionFormData {
   conta: string
   valor: number
@@ -53,6 +35,32 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
 
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [categorias, setCategorias] = useState<string[]>([])
+  const [tipos, setTipos] = useState<string[]>([])
+  const [dispositivos, setDispositivos] = useState<string[]>([])
+
+  useEffect(() => {
+    fetch('/api/ml/transacoes/categorias')
+      .then(res => res.json())
+      .then(data => {
+        if (data.categorias) setCategorias(data.categorias.sort())
+      })
+      .catch(err => console.error(err))
+
+    fetch('/api/ml/transacoes/tipos')
+      .then(res => res.json())
+      .then(data => {
+        if (data.tipos_transacao) setTipos(data.tipos_transacao.sort())
+      })
+      .catch(err => console.error(err))
+
+    fetch('/api/ml/transacoes/dispositivos')
+      .then(res => res.json())
+      .then(data => {
+        if (data.dispositivos) setDispositivos(data.dispositivos.sort())
+      })
+      .catch(err => console.error(err))
+  }, [])
 
   const onSubmit = async (data: CreateTransactionFormData) => {
     try {
@@ -164,21 +172,17 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Categoria *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Categoria</label>
                 <select
                   {...register('categoria', { required: 'Campo obrigatório' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary capitalize"
                 >
-                  <option value="">Selecione...</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
+                  <option value="">Selecione</option>
+                  {categorias.map(c => (
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
-                {errors.categoria && (
-                  <p className="text-red-500 text-xs mt-1">{errors.categoria.message}</p>
-                )}
+                {errors.categoria && <p className="mt-1 text-xs text-red-500">{errors.categoria.message}</p>}
               </div>
 
               <div>
@@ -195,39 +199,31 @@ export default function CreateTransactionModal({ onClose, onSuccess }: CreateTra
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Transação *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Transação</label>
                 <select
                   {...register('tipo_transacao', { required: 'Campo obrigatório' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary capitalize"
                 >
-                  <option value="">Selecione...</option>
-                  {TRANSACTION_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
+                  <option value="">Selecione</option>
+                  {tipos.map(t => (
+                    <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-                {errors.tipo_transacao && (
-                  <p className="text-red-500 text-xs mt-1">{errors.tipo_transacao.message}</p>
-                )}
+                {errors.tipo_transacao && <p className="mt-1 text-xs text-red-500">{errors.tipo_transacao.message}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Dispositivo *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Dispositivo</label>
                 <select
                   {...register('dispositivo', { required: 'Campo obrigatório' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary capitalize"
                 >
-                  <option value="">Selecione...</option>
-                  {DEVICES.map((device) => (
-                    <option key={device} value={device}>
-                      {device}
-                    </option>
+                  <option value="">Selecione</option>
+                  {dispositivos.map(d => (
+                    <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
-                {errors.dispositivo && (
-                  <p className="text-red-500 text-xs mt-1">{errors.dispositivo.message}</p>
-                )}
+                {errors.dispositivo && <p className="mt-1 text-xs text-red-500">{errors.dispositivo.message}</p>}
               </div>
 
               <div>
