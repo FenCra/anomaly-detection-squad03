@@ -15,8 +15,10 @@ node_modules
 /build
 
 # Environment
+.env
 .env.local
 .env.*.local
+Anomalias/.env
 
 # IDE
 .vscode/

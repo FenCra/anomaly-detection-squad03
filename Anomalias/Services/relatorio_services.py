@@ -4,6 +4,9 @@ import base64
 import json
 import os
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 import traceback
 from fastapi import HTTPException
 from google import genai
@@ -20,7 +23,9 @@ plt.rcParams['font.size'] = 11
 plt.rcParams['axes.titlesize'] = 14    
 plt.rcParams['axes.labelsize'] = 12
 
-GOOGLE_API_KEY = "AQ.Ab8RN6LEZBWbQk85BncwXY0dsTLgUNlaDJ6HEbJm7Oah2PyHKA"
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+if not GOOGLE_API_KEY:
+    raise RuntimeError("GOOGLE_API_KEY não encontrada. Defina-a no arquivo .env")
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 

@@ -1,0 +1,16 @@
+# Backend - Requisitos do projeto
+# Instale com: pip install -r requirements.txt
+
+fastapi==0.136.3
+uvicorn==0.49.0
+pydantic==2.13.4
+pandas==3.0.3
+numpy==2.4.6
+scikit-learn==1.8.0
+joblib==1.5.3
+pyodbc==5.3.0
+seaborn==0.13.2
+matplotlib==3.10.9
+shap==0.52.0
+google-genai==2.8.0
+python-dotenv==1.2.1
