@@ -256,6 +256,9 @@ Dashboard/
 **Auditoria Humana Definitiva:** O analista revisa anomalias sinalizadas pelo ML e sentencia a operação (PUT update via API).
 **Laboratório de ML Estável:** 5 modelos matemáticos gerados na nuvem (usando `matplotlib.use('Agg')` anti-crash) e servidos via Streaming.
 **Manual Operacional:** Documentação interna (`/ajuda`) traduzindo conceitos de Machine Learning para os auditores em linguagem clara e humana.
+**Motor de Regras Inteligente (Anti Cold-Start):** Transações de contas recém-criadas possuem uma proteção lógica que evita falsos positivos por falta de histórico de consumo, protegendo a experiência do novo cliente.
+**Filtros e Dropdowns Dinâmicos:** As opções de Categorias, Dispositivos, Contas e Cidades em toda a aplicação (filtros e formulário de criação) são populadas dinamicamente via consultas SQL `DISTINCT`, abandonando informações mockadas em código.
+**Relatório Generativo Resiliente:** Integração avançada com IA (Google Gemini 1.5 Flash) contendo um mecanismo de *fallback* e retentativas (retry) automático para contornar instabilidades e erros 503 de sobrecarga da API.
 
 ## 📝 Notas
 
